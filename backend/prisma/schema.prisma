@@ -1,0 +1,130 @@
+// Schéma Prisma — fondation (Auth + Société + Audit).
+// Les modules métier (Chantiers, Devis, Factures, Stock, RH, Finances...)
+// seront ajoutés au fil des étapes suivantes, chacun avec sa propre
+// migration versionnée.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["tce_maroc"]
+}
+
+enum Role {
+  ADMIN
+  DIRECTEUR
+  CONDUCTEUR_TRAVAUX
+  COMPTABLE
+  MAGASINIER
+  COMMERCIAL
+
+  @@schema("tce_maroc")
+}
+
+// Un ERP interne à l'entreprise : pas d'inscription publique, les comptes
+// sont créés par un administrateur (module Administration, à venir).
+model Utilisateur {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  motDePasse   String // haché (bcrypt), jamais en clair
+  nom          String
+  prenom       String
+  role         Role
+  actif        Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
+  journalEntries JournalAudit[]
+
+  @@schema("tce_maroc")
+}
+
+// Jetons de rafraîchissement JWT : révocables individuellement (déconnexion,
+// changement de mot de passe) sans invalider tous les appareils.
+model RefreshToken {
+  id            String      @id @default(uuid())
+  token         String      @unique
+  utilisateurId String
+  utilisateur   Utilisateur @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  createdAt     DateTime    @default(now())
+
+  @@index([utilisateurId])
+  @@schema("tce_maroc")
+}
+
+// Paramètres légaux et de facturation de l'entreprise. Ligne unique en
+// pratique (l'app gère une seule société), mais modélisée comme une table
+// pour rester extensible (ex. multi-société plus tard).
+model Societe {
+  id                    String   @id @default(uuid())
+  nom                   String
+  formeJuridique        String?
+  adresse               String?
+  ville                 String?
+  telephone             String?
+  email                 String?
+  logo                  String? // data URI ou URL de stockage
+
+  // Identifiants légaux marocains
+  ice                   String?
+  rc                    String?
+  identifiantFiscal     String?
+  patente                String?
+  cnss                  String?
+  rib                   String?
+
+  // Paramètres fiscaux / financiers par défaut (ajustables par document)
+  tauxTvaDefaut          Decimal  @default(20) @db.Decimal(5, 2)
+  tauxRetenueGarantie    Decimal  @default(10) @db.Decimal(5, 2)
+  tauxRetenueSource      Decimal  @default(0) @db.Decimal(5, 2)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  numerotations         Numerotation[]
+
+  @@schema("tce_maroc")
+}
+
+// Compteur de numérotation par type de document (devis, facture, bon de
+// commande, situation...), avec préfixe et remise à zéro annuelle
+// configurables — répond à l'exigence de numérotation continue et
+// paramétrable des pièces.
+model Numerotation {
+  id            String   @id @default(uuid())
+  societeId     String
+  societe       Societe  @relation(fields: [societeId], references: [id], onDelete: Cascade)
+  typeDocument  String // ex. 'DEVIS', 'FACTURE', 'BON_COMMANDE', 'SITUATION'
+  prefixe       String // ex. 'DEV', 'FACT'
+  anneeCourante Int
+  dernierNumero Int      @default(0)
+  resetAnnuel   Boolean  @default(true)
+
+  @@unique([societeId, typeDocument])
+  @@schema("tce_maroc")
+}
+
+// Journal d'audit des actions sensibles (création/modification/suppression
+// sur les entités métier, connexions...). Append-only : jamais modifié ni
+// supprimé par l'application elle-même.
+model JournalAudit {
+  id            String      @id @default(uuid())
+  utilisateurId String?
+  utilisateur   Utilisateur? @relation(fields: [utilisateurId], references: [id], onDelete: SetNull)
+  action        String // ex. 'LOGIN', 'CREATE_CHANTIER', 'UPDATE_DEVIS'
+  entite        String? // ex. 'Chantier', 'Devis'
+  entiteId      String?
+  metadonnees   Json?
+  createdAt     DateTime    @default(now())
+
+  @@index([utilisateurId])
+  @@index([entite, entiteId])
+  @@schema("tce_maroc")
+}
