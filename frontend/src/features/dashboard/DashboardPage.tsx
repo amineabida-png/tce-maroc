@@ -55,32 +55,48 @@ export default function DashboardPage() {
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Chantiers actifs</CardTitle>
-                <Building2 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="text-2xl font-semibold">{data.chantiersActifs}</CardContent>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-muted-foreground">Chantiers actifs</p>
+                  <p className="text-xl font-semibold leading-tight">{data.chantiersActifs}</p>
+                </div>
+              </CardContent>
             </Card>
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">CA du mois (TTC)</CardTitle>
-                <Receipt className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="text-2xl font-semibold">{formatMAD(data.caMoisCourant.montantTTC)}</CardContent>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                  <Receipt className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-muted-foreground">CA du mois (TTC)</p>
+                  <p className="truncate text-xl font-semibold leading-tight">{formatMAD(data.caMoisCourant.montantTTC)}</p>
+                </div>
+              </CardContent>
             </Card>
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Trésorerie disponible</CardTitle>
-                <Banknote className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="text-2xl font-semibold">{formatMAD(data.tresorerieDisponible)}</CardContent>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Banknote className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-muted-foreground">Trésorerie disponible</p>
+                  <p className="truncate text-xl font-semibold leading-tight">{formatMAD(data.tresorerieDisponible)}</p>
+                </div>
+              </CardContent>
             </Card>
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Créances clients</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="text-2xl font-semibold">{formatMAD(data.creancesClients)}</CardContent>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                  <Clock className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-muted-foreground">Créances clients</p>
+                  <p className="truncate text-xl font-semibold leading-tight">{formatMAD(data.creancesClients)}</p>
+                </div>
+              </CardContent>
             </Card>
           </div>
 

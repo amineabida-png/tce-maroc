@@ -22,6 +22,13 @@
     --input: 214 20% 88%;
     --ring: 217 60% 35%;
     --radius: 0.5rem;
+    /* Accent chantier : ocre/terracotta chaud, en écho aux teintes de
+       chantier et de terre marocaine — utilisé avec parcimonie (icônes,
+       graphiques, indicateur actif) pour donner du caractère BTP sans
+       remplacer le bleu institutionnel déjà partagé avec les autres
+       outils de l'entreprise. */
+    --brand: 32 80% 48%;
+    --brand-foreground: 0 0% 100%;
   }
   .dark {
     --background: 222 30% 8%;
@@ -41,6 +48,8 @@
     --border: 220 20% 20%;
     --input: 220 20% 20%;
     --ring: 213 65% 55%;
+    --brand: 34 85% 58%;
+    --brand-foreground: 222 30% 8%;
   }
   * {
     @apply border-border;

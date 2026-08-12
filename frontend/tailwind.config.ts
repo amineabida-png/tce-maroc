@@ -1,8 +1,10 @@
 import type { Config } from 'tailwindcss';
 
-// Palette sobre orientée BTP/administratif marocain : bleu ardoise (proche
-// du bleu institutionnel déjà utilisé dans les autres outils de
-// l'entreprise) + neutres légèrement bleutés plutôt que du gris pur.
+// Palette orientée BTP/administratif marocain : bleu ardoise institutionnel
+// (cohérent avec les autres outils de l'entreprise) comme couleur
+// structurante, + un accent ocre/terracotta ("brand") réservé aux points
+// d'emphase (graphiques, indicateurs actifs, icônes de mise en avant) —
+// neutres légèrement bleutés plutôt que du gris pur.
 export default {
   darkMode: ['class'],
   content: ['./index.html', './src/**/*.{ts,tsx}'],
@@ -41,6 +43,10 @@ export default {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
+        },
+        brand: {
+          DEFAULT: 'hsl(var(--brand))',
+          foreground: 'hsl(var(--brand-foreground))',
         },
       },
       borderRadius: {

@@ -1,7 +1,8 @@
 import { type FormEvent, useState } from 'react';
+import { HardHat } from 'lucide-react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { t } from '@/i18n';
@@ -40,10 +41,13 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>{t.auth.subtitle}</CardTitle>
-          <CardDescription>{t.auth.title}</CardDescription>
+      <Card className="w-full max-w-sm border-t-4 border-t-brand">
+        <CardHeader className="items-center text-center">
+          <div className="mb-1 flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <HardHat className="h-6 w-6" />
+          </div>
+          <p className="text-lg font-semibold leading-tight">{t.auth.subtitle}</p>
+          <p className="text-sm text-muted-foreground">{t.auth.title}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

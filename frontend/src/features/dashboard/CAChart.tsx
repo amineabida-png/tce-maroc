@@ -33,7 +33,7 @@ export function CAChart({ lignes }: { lignes: LigneCAMois[] }) {
             <span className="text-xs font-medium text-muted-foreground">{valeur > 0 ? formatMAD(valeur) : ''}</span>
             <div className="flex h-28 w-full items-end">
               <div
-                className="w-full rounded-t-sm bg-primary transition-all"
+                className="w-full rounded-t-sm bg-brand transition-all"
                 style={{ height: `${hauteurPct}%` }}
                 title={`${label} ${year} — ${formatMAD(valeur)}`}
               />
