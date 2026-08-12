@@ -26,6 +26,8 @@ import comptesTresorerieRoutes from './modules/comptes-tresorerie/routes';
 import mouvementsTresorerieRoutes from './modules/mouvements-tresorerie/routes';
 import reportingRoutes from './modules/reporting/routes';
 import dashboardRoutes from './modules/dashboard/routes';
+import administrationRoutes from './modules/administration/routes';
+import documentsRoutes from './modules/documents/routes';
 
 export function createApp(): Express {
   const app = express();
@@ -70,6 +72,8 @@ export function createApp(): Express {
   app.use('/api/mouvements-tresorerie', mouvementsTresorerieRoutes);
   app.use('/api/reporting', reportingRoutes);
   app.use('/api/dashboard', dashboardRoutes);
+  app.use('/api/administration', administrationRoutes);
+  app.use('/api/documents', documentsRoutes);
 
   // Le build sert le frontend statique compilé (une seule app Railway,
   // pas un service séparé par pièce du monorepo).

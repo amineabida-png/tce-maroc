@@ -19,8 +19,10 @@ En production, un seul service sert les deux : le backend compile et sert le bui
 - [x] Finances & trésorerie (comptes bancaires/caisse, encaissements/décaissements, journal, rapprochement bancaire, échéancier)
 - [x] Reporting (chiffre d'affaires par période, marge par chantier, état du stock, créances clients, exports CSV)
 - [x] Dashboard (KPIs — chantiers actifs, CA du mois, trésorerie, créances —, graphique CA 6 mois, alertes)
+- [x] Administration (gestion des comptes utilisateurs — création, rôles, désactivation, réinitialisation de mot de passe —, journal d'audit consultable, réservés ADMIN/DIRECTEUR)
+- [x] Documents & pièces jointes (upload/téléchargement/suppression rattachés à une entité — chantier, facture... —, stockage en base ; intégré aux fiches Chantier et Facture)
 
-Tous les modules de la spécification initiale sont construits — voir les commits pour le détail de chaque étape. Modules non couverts par la spécification d'origine (ex. Administration/sécurité avancée au-delà du RBAC déjà en place, module Documents dédié) restent à discuter au besoin.
+Tous les modules de la spécification initiale sont construits — voir les commits pour le détail de chaque étape.
 
 ## Installation locale
 

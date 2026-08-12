@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import { MulterError } from 'multer';
 import { ZodError } from 'zod';
 
 // Erreur métier volontaire (ex. "Client introuvable"), distincte d'un bug :
@@ -28,6 +29,11 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
   }
   if (err instanceof AppError) {
     res.status(err.status).json({ error: err.message });
+    return;
+  }
+  if (err instanceof MulterError) {
+    const message = err.code === 'LIMIT_FILE_SIZE' ? 'Fichier trop volumineux (10 Mo maximum).' : 'Erreur lors de l’envoi du fichier.';
+    res.status(400).json({ error: message });
     return;
   }
   console.error(err);

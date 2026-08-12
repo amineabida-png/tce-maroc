@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { SelectNative } from '@/components/ui/select-native';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ApiError, apiFetch } from '@/lib/api';
+import { DocumentsPanel } from '@/features/documents/DocumentsPanel';
 import { formatMAD } from '@/lib/currency';
 import { formatDate } from '@/lib/date';
 import { computeTotaux } from '@/lib/money';
@@ -382,6 +383,8 @@ export default function FactureDetailPage() {
           </div>
         </div>
       )}
+
+      {!isNew && facture && <DocumentsPanel entiteType="FACTURE" entiteId={facture.id} />}
 
       <PaiementFormDialog
         open={paiementDialogOpen}

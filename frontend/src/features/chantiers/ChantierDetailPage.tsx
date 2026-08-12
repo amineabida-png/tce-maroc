@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatMAD } from '@/lib/currency';
 import { formatDate } from '@/lib/date';
 import { ApiError } from '@/lib/api';
+import { DocumentsPanel } from '@/features/documents/DocumentsPanel';
 import * as api from './api';
 import { ChantierFormDialog } from './ChantierFormDialog';
 import { DepensesTab } from './DepensesTab';
@@ -100,6 +101,7 @@ export default function ChantierDetailPage() {
           <TabsTrigger value="infos">Infos</TabsTrigger>
           <TabsTrigger value="planning">Planning</TabsTrigger>
           <TabsTrigger value="budget">Dépenses & Budget</TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>
 
         <TabsContent value="infos" className="mt-4 grid grid-cols-2 gap-4 rounded-lg border p-6 text-sm">
@@ -145,6 +147,10 @@ export default function ChantierDetailPage() {
 
         <TabsContent value="budget" className="mt-4">
           <DepensesTab chantierId={chantier.id} />
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-4">
+          <DocumentsPanel entiteType="CHANTIER" entiteId={chantier.id} />
         </TabsContent>
       </Tabs>
 

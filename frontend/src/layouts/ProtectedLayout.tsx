@@ -12,6 +12,7 @@ import {
   PiggyBank,
   Receipt,
   Ruler,
+  ShieldCheck,
   ShoppingCart,
   Truck,
   Users,
@@ -38,9 +39,8 @@ const NAV_ITEMS = [
   { to: '/rh', label: t.nav.rh, icon: IdCard },
   { to: '/finances', label: t.nav.finances, icon: PiggyBank },
   { to: '/reporting', label: t.nav.reporting, icon: BarChart3 },
+  { to: '/administration', label: t.nav.administration, icon: ShieldCheck },
 ];
-// Les autres entrées (Administration...) seront ajoutées ici module par
-// module, en même temps que leurs pages et routes.
 
 export default function ProtectedLayout() {
   const user = useAuthStore((s) => s.user);

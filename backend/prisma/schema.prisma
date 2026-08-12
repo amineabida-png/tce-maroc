@@ -41,6 +41,7 @@ model Utilisateur {
   refreshTokens    RefreshToken[]
   journalEntries   JournalAudit[]
   chantiersDiriges Chantier[]
+  documents        Document[]
 
   @@schema("tce_maroc")
 }
@@ -822,5 +823,42 @@ model JournalAudit {
 
   @@index([utilisateurId])
   @@index([entite, entiteId])
+  @@schema("tce_maroc")
+}
+
+// ===== DOCUMENTS & PIÈCES JOINTES =====
+
+enum TypeEntiteDocument {
+  CHANTIER
+  CLIENT
+  FOURNISSEUR
+  SOUS_TRAITANT
+  DEVIS
+  COMMANDE
+  FACTURE
+  COMMANDE_FOURNISSEUR
+
+  @@schema("tce_maroc")
+}
+
+// Pièce jointe générique (photo de chantier, devis signé scanné, CIN...),
+// rattachée par (entiteType, entiteId) plutôt que par une colonne de clé
+// étrangère par entité — même principe que JournalAudit. Le contenu est
+// stocké directement en base (bytea) : pas de service de stockage objet
+// configuré pour cette app, acceptable au volume d'une PME du BTP ; à
+// migrer vers un stockage objet si les volumes de fichiers grossissent.
+model Document {
+  id           String             @id @default(uuid())
+  nom          String
+  typeMime     String
+  tailleOctets Int
+  contenu      Bytes
+  entiteType   TypeEntiteDocument
+  entiteId     String
+  uploadedById String?
+  uploadedPar  Utilisateur?       @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime           @default(now())
+
+  @@index([entiteType, entiteId])
   @@schema("tce_maroc")
 }

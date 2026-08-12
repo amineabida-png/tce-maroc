@@ -20,6 +20,7 @@ import StockPage from '@/features/stock/StockPage';
 import RHPage from '@/features/rh/RHPage';
 import FinancesPage from '@/features/finances/FinancesPage';
 import ReportingPage from '@/features/reporting/ReportingPage';
+import AdministrationPage from '@/features/administration/AdministrationPage';
 import ProtectedLayout from '@/layouts/ProtectedLayout';
 
 export default function App() {
@@ -47,6 +48,7 @@ export default function App() {
         <Route path="/rh" element={<RHPage />} />
         <Route path="/finances" element={<FinancesPage />} />
         <Route path="/reporting" element={<ReportingPage />} />
+        <Route path="/administration" element={<AdministrationPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
