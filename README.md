@@ -14,7 +14,7 @@ En production, un seul service sert les deux : le backend compile et sert le bui
 - [x] Clients / Fournisseurs / Sous-traitants (CRM léger, CRUD, recherche, suppression douce, RBAC par rôle)
 - [x] Chantiers (fiche, planning type Gantt simplifié, dépenses, suivi budgétaire prévu/réel)
 - [x] Devis & Facturation (BPU, devis par lots, conversion devis→commande→facture, retenue de garantie, paiements, impayés)
-- [ ] Achats & Stock
+- [x] Achats & Stock (commandes fournisseurs, réception partielle/totale, stock et valorisation CMP calculés depuis les mouvements)
 - [ ] RH & Pointage
 - [ ] Finances
 - [ ] Reporting

@@ -13,6 +13,10 @@ import CommandesPage from '@/features/commandes/CommandesPage';
 import CommandeDetailPage from '@/features/commandes/CommandeDetailPage';
 import FacturesPage from '@/features/factures/FacturesPage';
 import FactureDetailPage from '@/features/factures/FactureDetailPage';
+import ArticlesPage from '@/features/articles/ArticlesPage';
+import CommandesFournisseurPage from '@/features/commandes-fournisseur/CommandesFournisseurPage';
+import CommandeFournisseurDetailPage from '@/features/commandes-fournisseur/CommandeFournisseurDetailPage';
+import StockPage from '@/features/stock/StockPage';
 import ProtectedLayout from '@/layouts/ProtectedLayout';
 
 export default function App() {
@@ -33,6 +37,10 @@ export default function App() {
         <Route path="/commandes/:id" element={<CommandeDetailPage />} />
         <Route path="/factures" element={<FacturesPage />} />
         <Route path="/factures/:id" element={<FactureDetailPage />} />
+        <Route path="/articles" element={<ArticlesPage />} />
+        <Route path="/commandes-fournisseur" element={<CommandesFournisseurPage />} />
+        <Route path="/commandes-fournisseur/:id" element={<CommandeFournisseurDetailPage />} />
+        <Route path="/stock" element={<StockPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

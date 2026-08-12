@@ -171,7 +171,8 @@ model Fournisseur {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  depenses          DepenseChantier[]
+  depenses             DepenseChantier[]
+  commandesFournisseur CommandeFournisseur[]
 
   @@index([nom])
   @@schema("tce_maroc")
@@ -236,11 +237,13 @@ model Chantier {
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
 
-  taches             TacheChantier[]
-  depenses           DepenseChantier[]
-  devis              Devis[]
-  commandes          Commande[]
-  factures           Facture[]
+  taches               TacheChantier[]
+  depenses             DepenseChantier[]
+  devis                Devis[]
+  commandes            Commande[]
+  factures             Facture[]
+  commandesFournisseur CommandeFournisseur[]
+  mouvementsStock      MouvementStock[]
 
   @@index([nom])
   @@index([statut])
@@ -526,6 +529,114 @@ model Paiement {
   createdAt DateTime @default(now())
 
   @@index([factureId])
+  @@schema("tce_maroc")
+}
+
+// ===== ACHATS & STOCK =====
+
+// Catalogue des matériaux/articles suivis en stock. Le niveau de stock et sa
+// valorisation ne sont jamais stockés ici : toujours recalculés à partir du
+// grand livre MouvementStock (même principe que le budget chantier et les
+// totaux devis/facture) — pas de compteur qui pourrait dériver des
+// mouvements réels.
+model Article {
+  id          String   @id @default(uuid())
+  nom         String
+  categorie   String?
+  unite       String
+  seuilAlerte Decimal? @db.Decimal(12, 3)
+  actif       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  mouvements     MouvementStock[]
+  lignesCommande LigneCommandeFournisseur[]
+
+  @@index([nom])
+  @@schema("tce_maroc")
+}
+
+enum StatutCommandeFournisseur {
+  BROUILLON
+  ENVOYEE
+  PARTIELLEMENT_RECUE
+  RECUE
+  ANNULEE
+
+  @@schema("tce_maroc")
+}
+
+// Achat auprès d'un fournisseur — distinct de Commande (qui représente une
+// vente à un client). La réception (totale ou partielle) génère
+// automatiquement des MouvementStock ENTREE pour les lignes liées à un
+// article du catalogue.
+model CommandeFournisseur {
+  id            String                    @id @default(uuid())
+  numero        String                    @unique
+  fournisseurId String
+  fournisseur   Fournisseur               @relation(fields: [fournisseurId], references: [id])
+  chantierId    String?
+  chantier      Chantier?                 @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+  date          DateTime                  @default(now())
+  statut        StatutCommandeFournisseur @default(BROUILLON)
+  tauxTva       Decimal                   @default(20) @db.Decimal(5, 2)
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  lignes     LigneCommandeFournisseur[]
+  mouvements MouvementStock[]
+
+  @@index([fournisseurId])
+  @@index([statut])
+  @@schema("tce_maroc")
+}
+
+model LigneCommandeFournisseur {
+  id                    String              @id @default(uuid())
+  commandeFournisseurId String
+  commandeFournisseur   CommandeFournisseur @relation(fields: [commandeFournisseurId], references: [id], onDelete: Cascade)
+  articleId             String?
+  article               Article?            @relation(fields: [articleId], references: [id], onDelete: SetNull)
+  designation           String
+  unite                 String
+  quantiteCommandee     Decimal             @db.Decimal(12, 3)
+  quantiteRecue         Decimal             @default(0) @db.Decimal(12, 3)
+  prixUnitaire          Decimal             @db.Decimal(12, 2)
+  ordre                 Int                 @default(0)
+
+  @@index([commandeFournisseurId])
+  @@schema("tce_maroc")
+}
+
+enum TypeMouvementStock {
+  ENTREE
+  SORTIE
+
+  @@schema("tce_maroc")
+}
+
+// Grand livre des mouvements de stock — seule source de vérité pour le
+// niveau de stock et sa valorisation (coût moyen pondéré calculé à partir
+// des ENTREE). Une ENTREE référence en général une réception de commande
+// fournisseur ; une SORTIE référence en général une consommation sur
+// chantier.
+model MouvementStock {
+  id                    String               @id @default(uuid())
+  articleId             String
+  article               Article              @relation(fields: [articleId], references: [id])
+  type                  TypeMouvementStock
+  quantite              Decimal              @db.Decimal(12, 3)
+  prixUnitaire          Decimal?             @db.Decimal(12, 2) // requis pour une ENTREE (sert au calcul du CMP)
+  chantierId            String?
+  chantier              Chantier?            @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+  commandeFournisseurId String?
+  commandeFournisseur   CommandeFournisseur? @relation(fields: [commandeFournisseurId], references: [id], onDelete: SetNull)
+  date                  DateTime             @default(now())
+  notes                 String?
+  createdAt             DateTime             @default(now())
+
+  @@index([articleId])
+  @@index([chantierId])
   @@schema("tce_maroc")
 }
 
