@@ -40,6 +40,7 @@ model Utilisateur {
 
   refreshTokens RefreshToken[]
   journalEntries JournalAudit[]
+  chantiersDiriges Chantier[]
 
   @@schema("tce_maroc")
 }
@@ -140,6 +141,8 @@ model Client {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
+  chantiers         Chantier[]
+
   @@index([nom])
   @@schema("tce_maroc")
 }
@@ -165,6 +168,8 @@ model Fournisseur {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  depenses          DepenseChantier[]
+
   @@index([nom])
   @@schema("tce_maroc")
 }
@@ -187,7 +192,117 @@ model SousTraitant {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  depenses          DepenseChantier[]
+
   @@index([nom])
+  @@schema("tce_maroc")
+}
+
+enum StatutChantier {
+  EN_PREPARATION
+  EN_COURS
+  EN_RETARD
+  SUSPENDU
+  TERMINE
+  ANNULE
+
+  @@schema("tce_maroc")
+}
+
+// Fiche chantier : client, budget prévisionnel, dates, avancement, statut.
+// Le budget "réel" et l'écart se calculent à la volée à partir des
+// DepenseChantier liées — pas de duplication d'un total qui se
+// désynchroniserait des dépenses réelles.
+model Chantier {
+  id                 String         @id @default(uuid())
+  nom                String
+  clientId           String?
+  client             Client?        @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  adresse            String?
+  ville              String?
+  budgetPrevisionnel Decimal?       @db.Decimal(14, 2)
+  dateDebut          DateTime?
+  dateFinPrevue      DateTime?
+  dateFinReelle      DateTime?
+  avancement         Int            @default(0) // 0-100, mis à jour manuellement par le conducteur de travaux
+  statut             StatutChantier @default(EN_PREPARATION)
+  conducteurId       String?
+  conducteur         Utilisateur?   @relation(fields: [conducteurId], references: [id], onDelete: SetNull)
+  description        String?
+  actif              Boolean        @default(true) // suppression douce
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  taches             TacheChantier[]
+  depenses           DepenseChantier[]
+
+  @@index([nom])
+  @@index([statut])
+  @@schema("tce_maroc")
+}
+
+enum StatutTache {
+  A_FAIRE
+  EN_COURS
+  TERMINEE
+  BLOQUEE
+
+  @@schema("tce_maroc")
+}
+
+// Planning simplifié type Gantt : une tâche peut avoir un prédécesseur
+// (chaîne de dépendance linéaire). Pas de graphe de dépendances complexe
+// pour cette première version — suffisant pour visualiser un enchaînement
+// de phases de chantier.
+model TacheChantier {
+  id             String          @id @default(uuid())
+  chantierId     String
+  chantier       Chantier        @relation(fields: [chantierId], references: [id], onDelete: Cascade)
+  nom            String
+  dateDebut      DateTime?
+  dateFin        DateTime?
+  avancement     Int             @default(0)
+  statut         StatutTache     @default(A_FAIRE)
+  ordre          Int             @default(0)
+  predecesseurId String?
+  predecesseur   TacheChantier?  @relation("TachePredecesseur", fields: [predecesseurId], references: [id], onDelete: SetNull)
+  successeurs    TacheChantier[] @relation("TachePredecesseur")
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([chantierId])
+  @@schema("tce_maroc")
+}
+
+enum CategorieDepense {
+  MAIN_DOEUVRE
+  MATERIAUX
+  SOUS_TRAITANCE
+  LOCATION_MATERIEL
+  AUTRE
+
+  @@schema("tce_maroc")
+}
+
+// Dépense réelle rattachée à un chantier — base du suivi budgétaire
+// (prévu vs réel). Les modules Achats et RH (à venir) créeront ces lignes
+// automatiquement dans certains cas ; la saisie manuelle reste possible
+// pour ce qui ne transite pas encore par ces modules.
+model DepenseChantier {
+  id             String           @id @default(uuid())
+  chantierId     String
+  chantier       Chantier         @relation(fields: [chantierId], references: [id], onDelete: Cascade)
+  categorie      CategorieDepense
+  montant        Decimal          @db.Decimal(14, 2)
+  date           DateTime
+  description    String?
+  fournisseurId  String?
+  fournisseur    Fournisseur?     @relation(fields: [fournisseurId], references: [id], onDelete: SetNull)
+  sousTraitantId String?
+  sousTraitant   SousTraitant?    @relation(fields: [sousTraitantId], references: [id], onDelete: SetNull)
+  createdAt      DateTime         @default(now())
+
+  @@index([chantierId])
   @@schema("tce_maroc")
 }
 
