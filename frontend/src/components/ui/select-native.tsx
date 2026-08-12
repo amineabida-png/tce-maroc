@@ -1,0 +1,23 @@
+import * as React from 'react';
+import { cn } from '@/lib/utils';
+
+// Select natif stylé plutôt que le composant Radix complet : les listes ici
+// (type de client, note d'évaluation) sont courtes et un <select> natif
+// reste pleinement accessible sans dépendance supplémentaire.
+export type SelectNativeProps = React.SelectHTMLAttributes<HTMLSelectElement>;
+
+const SelectNative = React.forwardRef<HTMLSelectElement, SelectNativeProps>(({ className, children, ...props }, ref) => (
+  <select
+    ref={ref}
+    className={cn(
+      'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+      className
+    )}
+    {...props}
+  >
+    {children}
+  </select>
+));
+SelectNative.displayName = 'SelectNative';
+
+export { SelectNative };

@@ -111,6 +111,86 @@ model Numerotation {
   @@schema("tce_maroc")
 }
 
+enum TypeClient {
+  PARTICULIER
+  ENTREPRISE
+  MAITRE_OUVRAGE_PUBLIC
+
+  @@schema("tce_maroc")
+}
+
+// CRM léger : particuliers, entreprises, maîtres d'ouvrage publics.
+// L'historique (chantiers/devis/factures liés) et l'encours se calculeront
+// via les relations ajoutées par les modules Chantiers et Devis/Facturation
+// — pas de duplication de données ici.
+model Client {
+  id                String     @id @default(uuid())
+  type              TypeClient @default(ENTREPRISE)
+  nom               String // raison sociale, ou nom complet pour un particulier
+  contactNom        String? // personne à contacter (entreprise / MO public)
+  ice               String?
+  rc                String?
+  identifiantFiscal String?
+  adresse           String?
+  ville             String?
+  telephone         String?
+  email             String?
+  notes             String?
+  actif             Boolean    @default(true) // suppression douce : préserve l'historique une fois lié à des chantiers/devis
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@index([nom])
+  @@schema("tce_maroc")
+}
+
+// Fournisseurs de matériaux/services (achats), distincts des sous-traitants
+// (main-d'œuvre) — modèles séparés car leurs usages et champs métier
+// divergent (catégorie d'achat vs corps d'état).
+model Fournisseur {
+  id                String   @id @default(uuid())
+  nom               String
+  categorie         String? // ex. 'Matériaux', 'Location matériel', 'Services'
+  contactNom        String?
+  ice               String?
+  rc                String?
+  identifiantFiscal String?
+  adresse           String?
+  ville             String?
+  telephone         String?
+  email             String?
+  evaluation        Int? // note 1 à 5
+  notes             String?
+  actif             Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([nom])
+  @@schema("tce_maroc")
+}
+
+model SousTraitant {
+  id                String   @id @default(uuid())
+  nom               String
+  corpsDetat        String? // ex. 'Électricité', 'Plomberie', 'Étanchéité'...
+  contactNom        String?
+  ice               String?
+  rc                String?
+  identifiantFiscal String?
+  adresse           String?
+  ville             String?
+  telephone         String?
+  email             String?
+  evaluation        Int? // note 1 à 5
+  notes             String?
+  actif             Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([nom])
+  @@schema("tce_maroc")
+}
+
 // Journal d'audit des actions sensibles (création/modification/suppression
 // sur les entités métier, connexions...). Append-only : jamais modifié ni
 // supprimé par l'application elle-même.

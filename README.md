@@ -11,7 +11,7 @@ En production, un seul service sert les deux : le backend compile et sert le bui
 ## État d'avancement
 
 - [x] Squelette (backend + frontend), auth JWT (access + refresh, rotation), RBAC, module Société (paramètres légaux, TVA, retenues, numérotation)
-- [ ] Clients / Fournisseurs
+- [x] Clients / Fournisseurs / Sous-traitants (CRM léger, CRUD, recherche, suppression douce, RBAC par rôle)
 - [ ] Chantiers
 - [ ] Devis & Facturation
 - [ ] Achats & Stock
@@ -63,29 +63,34 @@ Générer un secret : `node -e "console.log(require('crypto').randomBytes(48).to
 
 Ce service utilise une instance PostgreSQL **partagée** avec d'autres applications du même projet Railway, isolée dans son propre schéma (`tce_maroc`, via la preview feature Prisma `multiSchema`). Conséquence : `prisma migrate dev` refuse de s'exécuter (erreur **P3005 « database schema is not empty »**) car Prisma vérifie l'état de la base entière, pas seulement notre schéma.
 
-Pour créer une **nouvelle** migration sur cette base :
+Procédure testée et utilisée pour chaque migration de ce projet — pour créer une **nouvelle** migration sur cette base :
 
 ```bash
-# 1. Générer le SQL de la migration sans l'appliquer
+# 0. Modifier prisma/schema.prisma (ajouter/changer des modèles)
+
+# 1. Générer le SQL en comparant l'état RÉEL de la base (--from-url) à l'état désiré du schéma
 npx prisma migrate diff \
-  --from-schema-datamodel prisma/schema.prisma \
+  --from-url "$DATABASE_URL" \
   --to-schema-datamodel prisma/schema.prisma \
   --script > /tmp/diff.sql
-# (en pratique : modifier schema.prisma, puis comparer l'état actuel de la base
-#  à l'état désiré — voir la doc Prisma "migrate diff" pour la syntaxe --from-url)
+# Relire /tmp/diff.sql avant de continuer : ne doit contenir QUE des
+# CREATE/ALTER sur le schéma tce_maroc, rien sur les autres apps.
 
-# 2. Créer le dossier de migration manuellement
-mkdir -p prisma/migrations/$(date -u +%Y%m%d%H%M%S)_nom_de_la_migration
-# y placer le migration.sql généré
+# 2. Créer le dossier de migration et y copier le SQL
+MIGDIR="prisma/migrations/$(date -u +%Y%m%d%H%M%S)_nom_de_la_migration"
+mkdir -p "$MIGDIR" && cp /tmp/diff.sql "$MIGDIR/migration.sql"
 
 # 3. Appliquer directement le SQL (sûr : ne touche que le schéma tce_maroc)
-npx prisma db execute --file prisma/migrations/<dossier>/migration.sql --schema prisma/schema.prisma
+npx prisma db execute --file "$MIGDIR/migration.sql" --schema prisma/schema.prisma
 
 # 4. Marquer la migration comme appliquée dans l'historique Prisma
-npx prisma migrate resolve --applied <nom_du_dossier>
+npx prisma migrate resolve --applied "$(basename "$MIGDIR")"
+
+# 5. Régénérer le client
+npx prisma generate
 ```
 
-En production (`npm run prisma:migrate:deploy`), une fois l'historique correctement baselined, les migrations suivantes s'appliquent normalement tant qu'elles ne recréent pas cette situation.
+En production, `npm start` exécute `prisma migrate deploy` automatiquement au démarrage : une fois l'historique correctement baselined via la procédure ci-dessus, les migrations suivantes s'appliquent normalement au déploiement.
 
 ## Commandes utiles (`backend/`)
 

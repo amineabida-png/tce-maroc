@@ -1,13 +1,18 @@
-import { LayoutDashboard, LogOut } from 'lucide-react';
+import { HardHat, LayoutDashboard, LogOut, Truck, Users } from 'lucide-react';
 import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
 import { logoutRequest } from '@/features/auth/api';
 import { useAuthStore } from '@/store/auth';
 
-const NAV_ITEMS = [{ to: '/', label: t.nav.dashboard, icon: LayoutDashboard }];
-// Les autres entrées (Chantiers, Devis, Clients, ...) seront ajoutées ici
-// module par module, en même temps que leurs pages et routes.
+const NAV_ITEMS = [
+  { to: '/', label: t.nav.dashboard, icon: LayoutDashboard },
+  { to: '/clients', label: t.nav.clients, icon: Users },
+  { to: '/fournisseurs', label: t.nav.fournisseurs, icon: Truck },
+  { to: '/sous-traitants', label: t.nav.sousTraitants, icon: HardHat },
+];
+// Les autres entrées (Chantiers, Devis, ...) seront ajoutées ici module par
+// module, en même temps que leurs pages et routes.
 
 export default function ProtectedLayout() {
   const user = useAuthStore((s) => s.user);

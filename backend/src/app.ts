@@ -8,6 +8,9 @@ import { env } from './config/env';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import authRoutes from './modules/auth/routes';
 import societeRoutes from './modules/societe/routes';
+import clientsRoutes from './modules/clients/routes';
+import fournisseursRoutes from './modules/fournisseurs/routes';
+import sousTraitantsRoutes from './modules/sous-traitants/routes';
 
 export function createApp(): Express {
   const app = express();
@@ -34,6 +37,9 @@ export function createApp(): Express {
 
   app.use('/api/auth', authRoutes);
   app.use('/api/societe', societeRoutes);
+  app.use('/api/clients', clientsRoutes);
+  app.use('/api/fournisseurs', fournisseursRoutes);
+  app.use('/api/sous-traitants', sousTraitantsRoutes);
 
   // Le build sert le frontend statique compilé (une seule app Railway,
   // pas un service séparé par pièce du monorepo).

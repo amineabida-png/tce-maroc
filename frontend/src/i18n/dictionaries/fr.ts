@@ -26,6 +26,7 @@ export const fr = {
     devis: 'Devis & Facturation',
     clients: 'Clients',
     fournisseurs: 'Fournisseurs',
+    sousTraitants: 'Sous-traitants',
     achats: 'Achats',
     stock: 'Stock',
     rh: 'Ressources humaines',
