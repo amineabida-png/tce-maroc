@@ -38,6 +38,7 @@ export const fr = {
     documents: 'Documents',
     reporting: 'Reporting',
     administration: 'Administration',
+    parametres: 'Paramètres société',
   },
   dashboard: {
     welcome: 'Bienvenue',

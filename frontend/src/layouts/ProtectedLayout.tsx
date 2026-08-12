@@ -12,6 +12,7 @@ import {
   PiggyBank,
   Receipt,
   Ruler,
+  Settings,
   ShieldCheck,
   ShoppingCart,
   Truck,
@@ -40,6 +41,7 @@ const NAV_ITEMS = [
   { to: '/finances', label: t.nav.finances, icon: PiggyBank },
   { to: '/reporting', label: t.nav.reporting, icon: BarChart3 },
   { to: '/administration', label: t.nav.administration, icon: ShieldCheck },
+  { to: '/parametres', label: t.nav.parametres, icon: Settings },
 ];
 
 export default function ProtectedLayout() {
