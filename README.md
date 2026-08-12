@@ -17,7 +17,7 @@ En production, un seul service sert les deux : le backend compile et sert le bui
 - [x] Achats & Stock (commandes fournisseurs, réception partielle/totale, stock et valorisation CMP calculés depuis les mouvements)
 - [x] RH & Pointage (fiches employés, feuille de pointage journalière avec correction idempotente, coût de main-d'œuvre par chantier, export paie CSV)
 - [x] Finances & trésorerie (comptes bancaires/caisse, encaissements/décaissements, journal, rapprochement bancaire, échéancier)
-- [ ] Reporting
+- [x] Reporting (chiffre d'affaires par période, marge par chantier, état du stock, créances clients, exports CSV)
 - [ ] Dashboard
 
 Construit module par module — voir les commits pour le détail de chaque étape.

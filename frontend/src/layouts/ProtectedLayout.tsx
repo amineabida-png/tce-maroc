@@ -7,6 +7,7 @@ import {
   IdCard,
   LayoutDashboard,
   LogOut,
+  BarChart3,
   PackageSearch,
   PiggyBank,
   Receipt,
@@ -36,9 +37,10 @@ const NAV_ITEMS = [
   { to: '/sous-traitants', label: t.nav.sousTraitants, icon: HardHat },
   { to: '/rh', label: t.nav.rh, icon: IdCard },
   { to: '/finances', label: t.nav.finances, icon: PiggyBank },
+  { to: '/reporting', label: t.nav.reporting, icon: BarChart3 },
 ];
-// Les autres entrées (Reporting, Administration...) seront ajoutées ici
-// module par module, en même temps que leurs pages et routes.
+// Les autres entrées (Administration...) seront ajoutées ici module par
+// module, en même temps que leurs pages et routes.
 
 export default function ProtectedLayout() {
   const user = useAuthStore((s) => s.user);
