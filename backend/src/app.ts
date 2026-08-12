@@ -22,6 +22,8 @@ import commandesFournisseurRoutes from './modules/commandes-fournisseur/routes';
 import mouvementsStockRoutes from './modules/mouvements-stock/routes';
 import employesRoutes from './modules/employes/routes';
 import pointagesRoutes from './modules/pointages/routes';
+import comptesTresorerieRoutes from './modules/comptes-tresorerie/routes';
+import mouvementsTresorerieRoutes from './modules/mouvements-tresorerie/routes';
 
 export function createApp(): Express {
   const app = express();
@@ -62,6 +64,8 @@ export function createApp(): Express {
   app.use('/api/mouvements-stock', mouvementsStockRoutes);
   app.use('/api/employes', employesRoutes);
   app.use('/api/pointages', pointagesRoutes);
+  app.use('/api/comptes-tresorerie', comptesTresorerieRoutes);
+  app.use('/api/mouvements-tresorerie', mouvementsTresorerieRoutes);
 
   // Le build sert le frontend statique compilé (une seule app Railway,
   // pas un service séparé par pièce du monorepo).

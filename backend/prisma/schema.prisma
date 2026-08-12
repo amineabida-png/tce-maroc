@@ -28,18 +28,18 @@ enum Role {
 // Un ERP interne à l'entreprise : pas d'inscription publique, les comptes
 // sont créés par un administrateur (module Administration, à venir).
 model Utilisateur {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  motDePasse   String // haché (bcrypt), jamais en clair
-  nom          String
-  prenom       String
-  role         Role
-  actif        Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id         String   @id @default(uuid())
+  email      String   @unique
+  motDePasse String // haché (bcrypt), jamais en clair
+  nom        String
+  prenom     String
+  role       Role
+  actif      Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  refreshTokens RefreshToken[]
-  journalEntries JournalAudit[]
+  refreshTokens    RefreshToken[]
+  journalEntries   JournalAudit[]
   chantiersDiriges Chantier[]
 
   @@schema("tce_maroc")
@@ -64,32 +64,32 @@ model RefreshToken {
 // pratique (l'app gère une seule société), mais modélisée comme une table
 // pour rester extensible (ex. multi-société plus tard).
 model Societe {
-  id                    String   @id @default(uuid())
-  nom                   String
-  formeJuridique        String?
-  adresse               String?
-  ville                 String?
-  telephone             String?
-  email                 String?
-  logo                  String? // data URI ou URL de stockage
+  id             String  @id @default(uuid())
+  nom            String
+  formeJuridique String?
+  adresse        String?
+  ville          String?
+  telephone      String?
+  email          String?
+  logo           String? // data URI ou URL de stockage
 
   // Identifiants légaux marocains
-  ice                   String?
-  rc                    String?
-  identifiantFiscal     String?
-  patente                String?
-  cnss                  String?
-  rib                   String?
+  ice               String?
+  rc                String?
+  identifiantFiscal String?
+  patente           String?
+  cnss              String?
+  rib               String?
 
   // Paramètres fiscaux / financiers par défaut (ajustables par document)
-  tauxTvaDefaut          Decimal  @default(20) @db.Decimal(5, 2)
-  tauxRetenueGarantie    Decimal  @default(10) @db.Decimal(5, 2)
-  tauxRetenueSource      Decimal  @default(0) @db.Decimal(5, 2)
+  tauxTvaDefaut       Decimal @default(20) @db.Decimal(5, 2)
+  tauxRetenueGarantie Decimal @default(10) @db.Decimal(5, 2)
+  tauxRetenueSource   Decimal @default(0) @db.Decimal(5, 2)
 
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  numerotations         Numerotation[]
+  numerotations Numerotation[]
 
   @@schema("tce_maroc")
 }
@@ -99,14 +99,14 @@ model Societe {
 // configurables — répond à l'exigence de numérotation continue et
 // paramétrable des pièces.
 model Numerotation {
-  id            String   @id @default(uuid())
+  id            String  @id @default(uuid())
   societeId     String
-  societe       Societe  @relation(fields: [societeId], references: [id], onDelete: Cascade)
+  societe       Societe @relation(fields: [societeId], references: [id], onDelete: Cascade)
   typeDocument  String // ex. 'DEVIS', 'FACTURE', 'BON_COMMANDE', 'SITUATION'
   prefixe       String // ex. 'DEV', 'FACT'
   anneeCourante Int
-  dernierNumero Int      @default(0)
-  resetAnnuel   Boolean  @default(true)
+  dernierNumero Int     @default(0)
+  resetAnnuel   Boolean @default(true)
 
   @@unique([societeId, typeDocument])
   @@schema("tce_maroc")
@@ -141,10 +141,10 @@ model Client {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
-  chantiers         Chantier[]
-  devis             Devis[]
-  commandes         Commande[]
-  factures          Facture[]
+  chantiers Chantier[]
+  devis     Devis[]
+  commandes Commande[]
+  factures  Facture[]
 
   @@index([nom])
   @@schema("tce_maroc")
@@ -173,6 +173,7 @@ model Fournisseur {
 
   depenses             DepenseChantier[]
   commandesFournisseur CommandeFournisseur[]
+  mouvementsTresorerie MouvementTresorerie[]
 
   @@index([nom])
   @@schema("tce_maroc")
@@ -196,7 +197,8 @@ model SousTraitant {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  depenses          DepenseChantier[]
+  depenses             DepenseChantier[]
+  mouvementsTresorerie MouvementTresorerie[]
 
   @@index([nom])
   @@schema("tce_maroc")
@@ -245,6 +247,7 @@ model Chantier {
   commandesFournisseur CommandeFournisseur[]
   mouvementsStock      MouvementStock[]
   pointages            Pointage[]
+  mouvementsTresorerie MouvementTresorerie[]
 
   @@index([nom])
   @@index([statut])
@@ -520,16 +523,19 @@ model LigneFacture {
 }
 
 model Paiement {
-  id        String   @id @default(uuid())
+  id        String            @id @default(uuid())
   factureId String
-  facture   Facture  @relation(fields: [factureId], references: [id], onDelete: Cascade)
-  montant   Decimal  @db.Decimal(12, 2)
+  facture   Facture           @relation(fields: [factureId], references: [id], onDelete: Cascade)
+  montant   Decimal           @db.Decimal(12, 2)
   date      DateTime
   mode      String? // Espèces, Chèque, Virement...
   reference String?
-  createdAt DateTime @default(now())
+  compteId  String? // rattachement optionnel à un compte de trésorerie, pour que son solde reflète les encaissements clients
+  compte    CompteTresorerie? @relation(fields: [compteId], references: [id], onDelete: SetNull)
+  createdAt DateTime          @default(now())
 
   @@index([factureId])
+  @@index([compteId])
   @@schema("tce_maroc")
 }
 
@@ -711,18 +717,108 @@ model Pointage {
   @@schema("tce_maroc")
 }
 
+// ===== FINANCES & TRÉSORERIE =====
+
+enum TypeCompteTresorerie {
+  BANQUE
+  CAISSE
+
+  @@schema("tce_maroc")
+}
+
+// Compte bancaire ou caisse espèces. Le solde n'est jamais stocké : toujours
+// recalculé (soldeInitial + encaissements réalisés - décaissements réalisés)
+// à partir des Paiement et MouvementTresorerie qui lui sont rattachés — même
+// principe que le budget chantier et le stock.
+model CompteTresorerie {
+  id           String               @id @default(uuid())
+  nom          String
+  type         TypeCompteTresorerie @default(BANQUE)
+  banque       String?
+  rib          String?
+  soldeInitial Decimal              @default(0) @db.Decimal(14, 2)
+  actif        Boolean              @default(true)
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  mouvements MouvementTresorerie[]
+  paiements  Paiement[]
+
+  @@index([nom])
+  @@schema("tce_maroc")
+}
+
+enum SensMouvement {
+  ENCAISSEMENT
+  DECAISSEMENT
+
+  @@schema("tce_maroc")
+}
+
+// PREVU = échéance saisie à l'avance (alimente l'échéancier des
+// décaissements à venir), REALISE = mouvement effectif (compte dans le
+// solde et peut être rapproché avec le relevé bancaire).
+enum StatutMouvement {
+  PREVU
+  REALISE
+
+  @@schema("tce_maroc")
+}
+
+enum ModePaiementTresorerie {
+  ESPECES
+  CHEQUE
+  VIREMENT
+  EFFET
+  AUTRE
+
+  @@schema("tce_maroc")
+}
+
+// Grand livre de trésorerie : tout encaissement/décaissement hors paiements
+// clients (déjà couverts par Paiement/Facture) — règlements fournisseurs et
+// sous-traitants, charges diverses, apports... Sert aussi de base à
+// l'échéancier (statut PREVU) et au rapprochement bancaire (rapproche).
+model MouvementTresorerie {
+  id                String                 @id @default(uuid())
+  compteId          String
+  compte            CompteTresorerie       @relation(fields: [compteId], references: [id])
+  sens              SensMouvement
+  statut            StatutMouvement        @default(REALISE)
+  montant           Decimal                @db.Decimal(14, 2)
+  date              DateTime
+  modePaiement      ModePaiementTresorerie @default(VIREMENT)
+  reference         String?
+  description       String?
+  chantierId        String?
+  chantier          Chantier?              @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+  fournisseurId     String?
+  fournisseur       Fournisseur?           @relation(fields: [fournisseurId], references: [id], onDelete: SetNull)
+  sousTraitantId    String?
+  sousTraitant      SousTraitant?          @relation(fields: [sousTraitantId], references: [id], onDelete: SetNull)
+  rapproche         Boolean                @default(false)
+  dateRapprochement DateTime?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  @@index([compteId])
+  @@index([date])
+  @@index([statut])
+  @@schema("tce_maroc")
+}
+
 // Journal d'audit des actions sensibles (création/modification/suppression
 // sur les entités métier, connexions...). Append-only : jamais modifié ni
 // supprimé par l'application elle-même.
 model JournalAudit {
-  id            String      @id @default(uuid())
+  id            String       @id @default(uuid())
   utilisateurId String?
   utilisateur   Utilisateur? @relation(fields: [utilisateurId], references: [id], onDelete: SetNull)
   action        String // ex. 'LOGIN', 'CREATE_CHANTIER', 'UPDATE_DEVIS'
   entite        String? // ex. 'Chantier', 'Devis'
   entiteId      String?
   metadonnees   Json?
-  createdAt     DateTime    @default(now())
+  createdAt     DateTime     @default(now())
 
   @@index([utilisateurId])
   @@index([entite, entiteId])

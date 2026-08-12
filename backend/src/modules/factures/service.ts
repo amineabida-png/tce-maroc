@@ -213,6 +213,7 @@ export async function addPaiement(factureId: string, data: CreatePaiementInput) 
         date: new Date(data.date),
         mode: data.mode,
         reference: data.reference,
+        compteId: normalizeEmptyToNull(data.compteId) ?? null,
       },
     });
     await recalculerStatutPaiement(tx, factureId);

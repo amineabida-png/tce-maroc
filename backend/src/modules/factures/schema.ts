@@ -25,5 +25,6 @@ export const createPaiementSchema = z.object({
   date: z.string().min(1, 'La date est obligatoire'),
   mode: z.string().max(50).nullish(),
   reference: z.string().max(100).nullish(),
+  compteId: z.string().uuid().nullish().or(z.literal('')),
 });
 export type CreatePaiementInput = z.infer<typeof createPaiementSchema>;
