@@ -199,3 +199,26 @@ describe('Chantiers — dépenses et budget', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('Chantiers — résumé portefeuille', () => {
+  it('reflète correctement les chantiers actifs créés (par delta, la base est partagée avec d’autres suites)', async () => {
+    const avant = await request(app).get('/api/chantiers/resume').set('Authorization', `Bearer ${conducteurToken}`);
+
+    const c1 = await request(app)
+      .post('/api/chantiers')
+      .set('Authorization', `Bearer ${conducteurToken}`)
+      .send({ nom: 'Chantier Résumé A', budgetPrevisionnel: 100000, statut: 'EN_COURS', avancement: 20 });
+    createdChantierIds.push(c1.body.id);
+    const c2 = await request(app)
+      .post('/api/chantiers')
+      .set('Authorization', `Bearer ${conducteurToken}`)
+      .send({ nom: 'Chantier Résumé B', budgetPrevisionnel: 50000, statut: 'EN_RETARD', avancement: 60 });
+    createdChantierIds.push(c2.body.id);
+
+    const apres = await request(app).get('/api/chantiers/resume').set('Authorization', `Bearer ${conducteurToken}`);
+    expect(apres.status).toBe(200);
+    expect(apres.body.total).toBe(avant.body.total + 2);
+    expect(apres.body.enRetard).toBe(avant.body.enRetard + 1);
+    expect(apres.body.budgetPrevisionnelTotal).toBe(avant.body.budgetPrevisionnelTotal + 150000);
+  });
+});

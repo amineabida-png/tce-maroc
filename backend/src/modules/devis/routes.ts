@@ -7,6 +7,7 @@ import {
   createDevisHandler,
   deleteDevisHandler,
   getDevisHandler,
+  getResumeHandler,
   listDevisHandler,
   updateDevisHandler,
 } from './controller';
@@ -15,6 +16,7 @@ const router = Router();
 const CAN_WRITE = ['ADMIN', 'DIRECTEUR', 'COMMERCIAL'];
 
 router.get('/', requireAuth, asyncHandler(listDevisHandler));
+router.get('/resume', requireAuth, asyncHandler(getResumeHandler));
 router.get('/:id', requireAuth, asyncHandler(getDevisHandler));
 router.post('/', requireAuth, requireRole(...CAN_WRITE), asyncHandler(createDevisHandler));
 router.put('/:id', requireAuth, requireRole(...CAN_WRITE), asyncHandler(updateDevisHandler));

@@ -17,6 +17,10 @@ export async function getDevisHandler(req: Request, res: Response): Promise<void
   res.json(await devisService.getDevis(req.params.id as string));
 }
 
+export async function getResumeHandler(_req: Request, res: Response): Promise<void> {
+  res.json(await devisService.getResume());
+}
+
 export async function createDevisHandler(req: Request, res: Response): Promise<void> {
   const data = devisContentSchema.parse(req.body);
   const devis = await devisService.createDevis(data);

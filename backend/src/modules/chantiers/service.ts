@@ -149,6 +149,26 @@ export async function getBudgetSummary(chantierId: string) {
   return { budgetPrevisionnel, totalReel, ecart, parCategorie };
 }
 
+// Résumé portefeuille — pour la bannière de synthèse en tête de la liste
+// des chantiers. Jamais stocké, recalculé à partir des chantiers actifs.
+export async function getResume() {
+  const chantiers = await prisma.chantier.findMany({
+    where: { actif: true },
+    select: { statut: true, budgetPrevisionnel: true, avancement: true },
+  });
+
+  const enRetard = chantiers.filter((c) => c.statut === 'EN_RETARD').length;
+  const budgetPrevisionnelTotal = chantiers.reduce((sum, c) => sum + (c.budgetPrevisionnel ? Number(c.budgetPrevisionnel) : 0), 0);
+  const avancementMoyen = chantiers.length > 0 ? Math.round(chantiers.reduce((sum, c) => sum + c.avancement, 0) / chantiers.length) : 0;
+
+  return {
+    total: chantiers.length,
+    enRetard,
+    budgetPrevisionnelTotal: Math.round(budgetPrevisionnelTotal * 100) / 100,
+    avancementMoyen,
+  };
+}
+
 /* ============================ TÂCHES ============================ */
 
 export async function listTaches(chantierId: string) {

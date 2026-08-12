@@ -224,3 +224,46 @@ describe('Facture — paiements et impayés', () => {
     expect(res.status).toBe(403);
   });
 });
+
+describe('Devis — résumé pipeline', () => {
+  it('le montant du pipeline et le total reflètent les devis créés (par delta, la base est partagée)', async () => {
+    const avant = await request(app).get('/api/devis/resume').set('Authorization', `Bearer ${commercialToken}`);
+
+    const devis = await request(app)
+      .post('/api/devis')
+      .set('Authorization', `Bearer ${commercialToken}`)
+      .send({
+        clientId: testClientId,
+        tauxTva: 20,
+        lots: [],
+        lignesSansLot: [{ designation: 'Résumé pipeline', unite: 'forfait', quantite: 1, prixUnitaire: 1000 }],
+      });
+    createdDevisIds.push(devis.body.id);
+
+    const apres = await request(app).get('/api/devis/resume').set('Authorization', `Bearer ${commercialToken}`);
+    expect(apres.status).toBe(200);
+    // Ce devis reste BROUILLON -> compte dans le pipeline en cours : 1000 HT * 1.2 = 1200 TTC.
+    expect(apres.body.total).toBe(avant.body.total + 1);
+    expect(apres.body.montantPipeline).toBe(Math.round((avant.body.montantPipeline + 1200) * 100) / 100);
+  });
+
+  it('un devis accepté produit un taux de conversion défini', async () => {
+    const devis = await request(app)
+      .post('/api/devis')
+      .set('Authorization', `Bearer ${commercialToken}`)
+      .send({
+        clientId: testClientId,
+        tauxTva: 20,
+        lots: [],
+        lignesSansLot: [{ designation: 'À accepter', unite: 'forfait', quantite: 1, prixUnitaire: 500 }],
+      });
+    createdDevisIds.push(devis.body.id);
+    await request(app).post(`/api/devis/${devis.body.id}/statut`).set('Authorization', `Bearer ${commercialToken}`).send({ statut: 'ENVOYE' });
+    await request(app).post(`/api/devis/${devis.body.id}/statut`).set('Authorization', `Bearer ${commercialToken}`).send({ statut: 'ACCEPTE' });
+
+    const resume = await request(app).get('/api/devis/resume').set('Authorization', `Bearer ${commercialToken}`);
+    expect(resume.body.tauxConversion).not.toBeNull();
+    expect(resume.body.tauxConversion).toBeGreaterThan(0);
+    expect(resume.body.tauxConversion).toBeLessThanOrEqual(100);
+  });
+});

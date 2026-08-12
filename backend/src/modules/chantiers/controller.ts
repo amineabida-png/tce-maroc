@@ -19,6 +19,10 @@ export async function listChantiersHandler(req: Request, res: Response): Promise
   res.json(await chantiersService.listChantiers(params, { statut, includeInactifs }));
 }
 
+export async function getResumeHandler(_req: Request, res: Response): Promise<void> {
+  res.json(await chantiersService.getResume());
+}
+
 export async function getChantierHandler(req: Request, res: Response): Promise<void> {
   res.json(await chantiersService.getChantier(req.params.id as string));
 }

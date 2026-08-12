@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search } from 'lucide-react';
+import { AlertTriangle, Banknote, Plus, Search, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PaginationBar } from '@/components/PaginationBar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { SelectNative } from '@/components/ui/select-native';
@@ -28,11 +29,16 @@ export default function ChantiersPage() {
     queryKey: ['chantiers', q, statut, page],
     queryFn: () => api.fetchChantiers({ q, page, statut: statut || undefined }),
   });
+  const { data: resume } = useQuery({
+    queryKey: ['chantiers-resume'],
+    queryFn: () => api.fetchResumeChantiers(),
+  });
 
   const createMutation = useMutation({
     mutationFn: api.createChantier,
     onSuccess: (chantier) => {
       queryClient.invalidateQueries({ queryKey: ['chantiers'] });
+      queryClient.invalidateQueries({ queryKey: ['chantiers-resume'] });
       setDialogOpen(false);
       navigate(`/chantiers/${chantier.id}`);
     },
@@ -57,6 +63,50 @@ export default function ChantiersPage() {
           Nouveau chantier
         </Button>
       </div>
+
+      {resume && resume.total > 0 && (
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs font-medium text-muted-foreground">Chantiers actifs</p>
+              <p className="text-xl font-semibold leading-tight">{resume.total}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${resume.enRetard > 0 ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
+                <AlertTriangle className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">En retard</p>
+                <p className="text-xl font-semibold leading-tight">{resume.enRetard}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <Banknote className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground">Budget prévisionnel total</p>
+                <p className="truncate text-xl font-semibold leading-tight">{formatMAD(resume.budgetPrevisionnelTotal)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <TrendingUp className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Avancement moyen</p>
+                <p className="text-xl font-semibold leading-tight">{resume.avancementMoyen}%</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-72 max-w-full">

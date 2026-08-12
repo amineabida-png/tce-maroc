@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Search } from 'lucide-react';
+import { Clock, Plus, Receipt, Search, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PaginationBar } from '@/components/PaginationBar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { SelectNative } from '@/components/ui/select-native';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatDate } from '@/lib/date';
 import { formatMAD } from '@/lib/currency';
+import * as reportingApi from '@/features/reporting/api';
 import * as api from './api';
 import { STATUT_FACTURE_LABELS, STATUT_FACTURE_VARIANT } from './types';
 
@@ -24,6 +26,16 @@ export default function FacturesPage() {
     queryKey: ['factures-list', q, statut, impayeesOnly, page],
     queryFn: () => api.fetchFacturesList({ q, page, statut: statut || undefined, impayees: impayeesOnly }),
   });
+  // Réutilise le module Reporting (aucun params = totaux toutes périodes)
+  // plutôt que de dupliquer le calcul de chiffre d'affaires ici.
+  const { data: ca } = useQuery({
+    queryKey: ['reporting-ca-all'],
+    queryFn: () => reportingApi.fetchCA({}),
+  });
+  const { data: impayes } = useQuery({
+    queryKey: ['reporting-impayes-all'],
+    queryFn: () => reportingApi.fetchImpayes(),
+  });
 
   return (
     <div className="space-y-6">
@@ -37,6 +49,44 @@ export default function FacturesPage() {
           Nouvelle facture
         </Button>
       </div>
+
+      {ca && impayes && (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Receipt className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground">Total facturé TTC (toutes périodes)</p>
+                <p className="truncate text-xl font-semibold leading-tight">{formatMAD(ca.total.montantTTC)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <Wallet className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground">Encaissé</p>
+                <p className="truncate text-xl font-semibold leading-tight">{formatMAD(ca.total.montantEncaisse)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${impayes.total > 0 ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
+                <Clock className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground">Créances clients</p>
+                <p className="truncate text-xl font-semibold leading-tight">{formatMAD(impayes.total)}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-72 max-w-full">

@@ -30,6 +30,16 @@ export function fetchChantiers(params: { q?: string; page?: number; statut?: str
   return apiFetch<Paginated<ChantierSummary>>(`/api/chantiers?${qs.toString()}`);
 }
 
+export interface ResumeChantiers {
+  total: number;
+  enRetard: number;
+  budgetPrevisionnelTotal: number;
+  avancementMoyen: number;
+}
+export function fetchResumeChantiers() {
+  return apiFetch<ResumeChantiers>('/api/chantiers/resume');
+}
+
 export function fetchChantier(id: string) {
   return apiFetch<Chantier>(`/api/chantiers/${id}`);
 }

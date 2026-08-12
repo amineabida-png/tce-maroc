@@ -10,6 +10,7 @@ import {
   deleteTacheHandler,
   getBudgetSummaryHandler,
   getChantierHandler,
+  getResumeHandler,
   listChantiersHandler,
   listDepensesHandler,
   listTachesHandler,
@@ -23,6 +24,7 @@ const CAN_WRITE_CHANTIER = ['ADMIN', 'DIRECTEUR', 'CONDUCTEUR_TRAVAUX'];
 const CAN_WRITE_DEPENSE = ['ADMIN', 'DIRECTEUR', 'COMPTABLE', 'CONDUCTEUR_TRAVAUX'];
 
 router.get('/', requireAuth, asyncHandler(listChantiersHandler));
+router.get('/resume', requireAuth, asyncHandler(getResumeHandler));
 router.get('/:id', requireAuth, asyncHandler(getChantierHandler));
 router.post('/', requireAuth, requireRole(...CAN_WRITE_CHANTIER), asyncHandler(createChantierHandler));
 router.put('/:id', requireAuth, requireRole(...CAN_WRITE_CHANTIER), asyncHandler(updateChantierHandler));

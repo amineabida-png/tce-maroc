@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Search } from 'lucide-react';
+import { FileText, Percent, Plus, Search, Wallet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PaginationBar } from '@/components/PaginationBar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { SelectNative } from '@/components/ui/select-native';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -23,6 +24,10 @@ export default function DevisPage() {
     queryKey: ['devis-list', q, statut, page],
     queryFn: () => api.fetchDevisList({ q, page, statut: statut || undefined }),
   });
+  const { data: resume } = useQuery({
+    queryKey: ['devis-resume'],
+    queryFn: () => api.fetchResumeDevis(),
+  });
 
   return (
     <div className="space-y-6">
@@ -36,6 +41,44 @@ export default function DevisPage() {
           Nouveau devis
         </Button>
       </div>
+
+      {resume && resume.total > 0 && (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <FileText className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Devis au total</p>
+                <p className="text-xl font-semibold leading-tight">{resume.total}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <Wallet className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground">Pipeline en cours (brouillon/envoyé/accepté)</p>
+                <p className="truncate text-xl font-semibold leading-tight">{formatMAD(resume.montantPipeline)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Percent className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Taux de conversion</p>
+                <p className="text-xl font-semibold leading-tight">{resume.tauxConversion !== null ? `${resume.tauxConversion}%` : '—'}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-72 max-w-full">

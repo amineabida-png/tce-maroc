@@ -220,3 +220,33 @@ export async function convertirEnCommande(id: string) {
 
   return commandeId;
 }
+
+// Résumé pour la bannière de synthèse en tête de la liste des devis —
+// répartition par statut + montant total du pipeline en cours (devis pas
+// encore refusés/expirés/convertis). Jamais stocké, recalculé à la demande.
+const STATUTS_PIPELINE: StatutDevis[] = ['BROUILLON', 'ENVOYE', 'ACCEPTE'];
+
+export async function getResume() {
+  const [parStatutRaw, enCours] = await Promise.all([
+    prisma.devis.groupBy({ by: ['statut'], _count: true }),
+    prisma.devis.findMany({
+      where: { statut: { in: STATUTS_PIPELINE } },
+      select: { tauxTva: true, lignes: { select: { quantite: true, prixUnitaire: true } } },
+    }),
+  ]);
+
+  const parStatut = parStatutRaw.map((s) => ({ statut: s.statut, nombre: s._count }));
+  const montantPipeline = enCours.reduce((sum, d) => sum + computeTotaux(d.lignes, d.tauxTva).montantTTC, 0);
+  const total = parStatut.reduce((sum, s) => sum + s.nombre, 0);
+  const accepte = parStatut.find((s) => s.statut === 'ACCEPTE')?.nombre ?? 0;
+  const refuse = parStatut.find((s) => s.statut === 'REFUSE')?.nombre ?? 0;
+  const clos = accepte + refuse + (parStatut.find((s) => s.statut === 'CONVERTI')?.nombre ?? 0);
+  const tauxConversion = clos > 0 ? Math.round(((accepte + (parStatut.find((s) => s.statut === 'CONVERTI')?.nombre ?? 0)) / clos) * 100) : null;
+
+  return {
+    total,
+    parStatut,
+    montantPipeline: Math.round(montantPipeline * 100) / 100,
+    tauxConversion,
+  };
+}

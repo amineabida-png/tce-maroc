@@ -49,6 +49,16 @@ export function fetchDevis(id: string) {
   return apiFetch<Devis>(`/api/devis/${id}`);
 }
 
+export interface ResumeDevis {
+  total: number;
+  parStatut: { statut: StatutDevis; nombre: number }[];
+  montantPipeline: number;
+  tauxConversion: number | null;
+}
+export function fetchResumeDevis() {
+  return apiFetch<ResumeDevis>('/api/devis/resume');
+}
+
 export function createDevis(content: DevisContent) {
   return apiFetch<Devis>('/api/devis', { method: 'POST', body: JSON.stringify(toPayload(content)) });
 }
