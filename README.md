@@ -111,4 +111,19 @@ En production (`npm run prisma:migrate:deploy`), une fois l'historique correctem
 
 ## Déploiement
 
-Voir la section dédiée ajoutée à la fin de ce README une fois le squelette déployé (service Railway `tce-maroc` dans le projet `practical-grace`).
+- **GitHub** : [amineabida-png/tce-maroc](https://github.com/amineabida-png/tce-maroc)
+- **Railway** : service `tce-maroc` dans le projet `practical-grace` — https://tce-maroc-production.up.railway.app
+- **Base de données** : Postgres partagé du projet (`${{Postgres.DATABASE_URL}}`), schéma dédié `tce_maroc`
+
+Le service exécute automatiquement au démarrage : `prisma migrate deploy` (migrations en attente) puis `prisma/seed.ts` (idempotent — société + admin par défaut si absents), avant de lancer le serveur.
+
+Variables définies sur Railway : `DATABASE_URL` (référence au service Postgres), `JWT_SECRET`, `JWT_REFRESH_SECRET`, `JWT_ACCESS_TTL`, `JWT_REFRESH_TTL_DAYS`, `NODE_ENV=production`. `PORT` est injecté automatiquement par Railway.
+
+### Checklist de vérification post-déploiement
+
+- [x] `GET /health` → `{"status":"ok"}`
+- [x] `GET /` → sert le frontend (build React)
+- [x] `POST /api/auth/login` avec le compte admin → jetons valides
+- [x] `GET /api/auth/me` sans jeton → 401
+- [x] `PUT /api/societe` avec un rôle non-admin → 403 (RBAC)
+- [ ] Génération d'un devis en PDF — à vérifier une fois le module Devis construit
