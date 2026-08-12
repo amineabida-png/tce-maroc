@@ -69,3 +69,46 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
   if (res.status === 204) return undefined as T;
   return res.json();
 }
+
+// Téléchargement de fichier (export CSV) avec le même jeton d'accès et la
+// même logique de rafraîchissement que apiFetch, mais consommant un blob
+// plutôt qu'un JSON et déclenchant le téléchargement navigateur.
+export async function apiDownload(path: string, filenameFallback: string): Promise<void> {
+  const { accessToken, refreshToken, setAuth, clear } = useAuthStore.getState();
+
+  const doFetch = (token: string | null) =>
+    fetch(path, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+
+  let res = await doFetch(accessToken);
+
+  if (res.status === 401 && refreshToken) {
+    refreshInFlight ??= rawRefresh(refreshToken).finally(() => {
+      refreshInFlight = null;
+    });
+    const refreshed = await refreshInFlight;
+    if (refreshed) {
+      setAuth(refreshed);
+      res = await doFetch(refreshed.accessToken);
+    } else {
+      clear();
+      throw new ApiError(401, 'Session expirée — reconnectez-vous.');
+    }
+  }
+
+  if (!res.ok) {
+    throw new ApiError(res.status, await parseError(res));
+  }
+
+  const blob = await res.blob();
+  const match = /filename="?([^"]+)"?/.exec(res.headers.get('Content-Disposition') || '');
+  const filename = match?.[1] || filenameFallback;
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}

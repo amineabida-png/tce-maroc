@@ -17,6 +17,7 @@ import ArticlesPage from '@/features/articles/ArticlesPage';
 import CommandesFournisseurPage from '@/features/commandes-fournisseur/CommandesFournisseurPage';
 import CommandeFournisseurDetailPage from '@/features/commandes-fournisseur/CommandeFournisseurDetailPage';
 import StockPage from '@/features/stock/StockPage';
+import RHPage from '@/features/rh/RHPage';
 import ProtectedLayout from '@/layouts/ProtectedLayout';
 
 export default function App() {
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/commandes-fournisseur" element={<CommandesFournisseurPage />} />
         <Route path="/commandes-fournisseur/:id" element={<CommandeFournisseurDetailPage />} />
         <Route path="/stock" element={<StockPage />} />
+        <Route path="/rh" element={<RHPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

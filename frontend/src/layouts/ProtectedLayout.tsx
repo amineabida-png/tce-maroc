@@ -4,6 +4,7 @@ import {
   FileStack,
   FileText,
   HardHat,
+  IdCard,
   LayoutDashboard,
   LogOut,
   PackageSearch,
@@ -32,9 +33,10 @@ const NAV_ITEMS = [
   { to: '/clients', label: t.nav.clients, icon: Users },
   { to: '/fournisseurs', label: t.nav.fournisseurs, icon: Truck },
   { to: '/sous-traitants', label: t.nav.sousTraitants, icon: HardHat },
+  { to: '/rh', label: t.nav.rh, icon: IdCard },
 ];
-// Les autres entrées (RH, Finances, ...) seront ajoutées ici module par
-// module, en même temps que leurs pages et routes.
+// Les autres entrées (Finances, ...) seront ajoutées ici module par module,
+// en même temps que leurs pages et routes.
 
 export default function ProtectedLayout() {
   const user = useAuthStore((s) => s.user);

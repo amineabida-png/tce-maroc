@@ -244,6 +244,7 @@ model Chantier {
   factures             Facture[]
   commandesFournisseur CommandeFournisseur[]
   mouvementsStock      MouvementStock[]
+  pointages            Pointage[]
 
   @@index([nom])
   @@index([statut])
@@ -637,6 +638,76 @@ model MouvementStock {
 
   @@index([articleId])
   @@index([chantierId])
+  @@schema("tce_maroc")
+}
+
+// ===== RH & POINTAGE =====
+
+enum TypeContrat {
+  CDI
+  CDD
+  JOURNALIER
+  AUTRE
+
+  @@schema("tce_maroc")
+}
+
+// Fiche employé — distincte d'Utilisateur (qui représente un compte de
+// connexion à l'app) : la plupart des ouvriers de chantier n'ont pas de
+// compte ERP, mais ont bien une fiche RH pour le pointage et la paie.
+model Employe {
+  id           String      @id @default(uuid())
+  nom          String
+  prenom       String
+  cin          String?
+  cnss         String?
+  poste        String?
+  typeContrat  TypeContrat @default(CDI)
+  dateEmbauche DateTime?
+  tauxHoraire  Decimal?    @db.Decimal(10, 2)
+  telephone    String?
+  email        String?
+  adresse      String?
+  notes        String?
+  actif        Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  pointages Pointage[]
+
+  @@index([nom])
+  @@schema("tce_maroc")
+}
+
+enum StatutPointage {
+  PRESENT
+  ABSENT
+  CONGE
+  MALADIE
+  JOUR_FERIE
+
+  @@schema("tce_maroc")
+}
+
+// Pointage journalier — un seul enregistrement par employé et par jour
+// (contrainte unique) : reflète la réalité d'une feuille de présence
+// papier/quotidienne, pas un système de badgeuse horodatée.
+model Pointage {
+  id           String         @id @default(uuid())
+  employeId    String
+  employe      Employe        @relation(fields: [employeId], references: [id], onDelete: Cascade)
+  chantierId   String?
+  chantier     Chantier?      @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+  date         DateTime
+  statut       StatutPointage @default(PRESENT)
+  nombreHeures Decimal?       @db.Decimal(5, 2)
+  notes        String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@unique([employeId, date])
+  @@index([chantierId])
+  @@index([date])
   @@schema("tce_maroc")
 }
 

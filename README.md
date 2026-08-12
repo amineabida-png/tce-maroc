@@ -15,7 +15,7 @@ En production, un seul service sert les deux : le backend compile et sert le bui
 - [x] Chantiers (fiche, planning type Gantt simplifié, dépenses, suivi budgétaire prévu/réel)
 - [x] Devis & Facturation (BPU, devis par lots, conversion devis→commande→facture, retenue de garantie, paiements, impayés)
 - [x] Achats & Stock (commandes fournisseurs, réception partielle/totale, stock et valorisation CMP calculés depuis les mouvements)
-- [ ] RH & Pointage
+- [x] RH & Pointage (fiches employés, feuille de pointage journalière avec correction idempotente, coût de main-d'œuvre par chantier, export paie CSV)
 - [ ] Finances
 - [ ] Reporting
 - [ ] Dashboard
