@@ -13,7 +13,7 @@ En production, un seul service sert les deux : le backend compile et sert le bui
 - [x] Squelette (backend + frontend), auth JWT (access + refresh, rotation), RBAC, module Société (paramètres légaux, TVA, retenues, numérotation)
 - [x] Clients / Fournisseurs / Sous-traitants (CRM léger, CRUD, recherche, suppression douce, RBAC par rôle)
 - [x] Chantiers (fiche, planning type Gantt simplifié, dépenses, suivi budgétaire prévu/réel)
-- [ ] Devis & Facturation
+- [x] Devis & Facturation (BPU, devis par lots, conversion devis→commande→facture, retenue de garantie, paiements, impayés)
 - [ ] Achats & Stock
 - [ ] RH & Pointage
 - [ ] Finances

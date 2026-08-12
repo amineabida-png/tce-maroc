@@ -23,7 +23,10 @@ export const fr = {
   nav: {
     dashboard: 'Tableau de bord',
     chantiers: 'Chantiers',
-    devis: 'Devis & Facturation',
+    ouvrages: 'Bibliothèque de prix',
+    devis: 'Devis',
+    commandes: 'Bons de commande',
+    factures: 'Factures',
     clients: 'Clients',
     fournisseurs: 'Fournisseurs',
     sousTraitants: 'Sous-traitants',

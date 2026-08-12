@@ -6,6 +6,13 @@ import FournisseursPage from '@/features/fournisseurs/FournisseursPage';
 import SousTraitantsPage from '@/features/sous-traitants/SousTraitantsPage';
 import ChantiersPage from '@/features/chantiers/ChantiersPage';
 import ChantierDetailPage from '@/features/chantiers/ChantierDetailPage';
+import OuvragesPage from '@/features/ouvrages/OuvragesPage';
+import DevisPage from '@/features/devis/DevisPage';
+import DevisDetailPage from '@/features/devis/DevisDetailPage';
+import CommandesPage from '@/features/commandes/CommandesPage';
+import CommandeDetailPage from '@/features/commandes/CommandeDetailPage';
+import FacturesPage from '@/features/factures/FacturesPage';
+import FactureDetailPage from '@/features/factures/FactureDetailPage';
 import ProtectedLayout from '@/layouts/ProtectedLayout';
 
 export default function App() {
@@ -19,6 +26,13 @@ export default function App() {
         <Route path="/sous-traitants" element={<SousTraitantsPage />} />
         <Route path="/chantiers" element={<ChantiersPage />} />
         <Route path="/chantiers/:id" element={<ChantierDetailPage />} />
+        <Route path="/ouvrages" element={<OuvragesPage />} />
+        <Route path="/devis" element={<DevisPage />} />
+        <Route path="/devis/:id" element={<DevisDetailPage />} />
+        <Route path="/commandes" element={<CommandesPage />} />
+        <Route path="/commandes/:id" element={<CommandeDetailPage />} />
+        <Route path="/factures" element={<FacturesPage />} />
+        <Route path="/factures/:id" element={<FactureDetailPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

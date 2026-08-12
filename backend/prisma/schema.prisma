@@ -142,6 +142,9 @@ model Client {
   updatedAt         DateTime   @updatedAt
 
   chantiers         Chantier[]
+  devis             Devis[]
+  commandes         Commande[]
+  factures          Facture[]
 
   @@index([nom])
   @@schema("tce_maroc")
@@ -235,6 +238,9 @@ model Chantier {
 
   taches             TacheChantier[]
   depenses           DepenseChantier[]
+  devis              Devis[]
+  commandes          Commande[]
+  factures           Facture[]
 
   @@index([nom])
   @@index([statut])
@@ -303,6 +309,223 @@ model DepenseChantier {
   createdAt      DateTime         @default(now())
 
   @@index([chantierId])
+  @@schema("tce_maroc")
+}
+
+// ===== BPU (BIBLIOTHÈQUE D'OUVRAGES) =====
+
+// Catalogue de prix unitaires réutilisables par corps d'état, pour
+// accélérer la saisie des lignes de devis.
+model Ouvrage {
+  id                 String   @id @default(uuid())
+  corpsDetat         String
+  designation        String
+  unite              String // m², ml, u, forfait, kg...
+  prixUnitaireDefaut Decimal  @db.Decimal(12, 2)
+  actif              Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([corpsDetat])
+  @@index([designation])
+  @@schema("tce_maroc")
+}
+
+// ===== DEVIS =====
+
+enum StatutDevis {
+  BROUILLON
+  ENVOYE
+  ACCEPTE
+  REFUSE
+  EXPIRE
+  CONVERTI
+
+  @@schema("tce_maroc")
+}
+
+// Les montants HT/TVA/TTC ne sont jamais stockés : toujours recalculés à
+// partir des lignes (même principe que le budget chantier), pour ne jamais
+// se désynchroniser d'une modification de ligne.
+model Devis {
+  id           String      @id @default(uuid())
+  numero       String      @unique
+  clientId     String
+  client       Client      @relation(fields: [clientId], references: [id])
+  chantierId   String?
+  chantier     Chantier?   @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+  date         DateTime    @default(now())
+  dateValidite DateTime?
+  statut       StatutDevis @default(BROUILLON)
+  tauxTva      Decimal     @default(20) @db.Decimal(5, 2)
+  conditions   String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  lots      LotDevis[]
+  lignes    LigneDevis[]
+  commandes Commande[]
+  factures  Facture[]
+
+  @@index([clientId])
+  @@index([statut])
+  @@schema("tce_maroc")
+}
+
+// Regroupement des lignes par corps d'état/poste au sein d'un devis
+// ("devis détaillés par lots/postes").
+model LotDevis {
+  id      String       @id @default(uuid())
+  devisId String
+  devis   Devis        @relation(fields: [devisId], references: [id], onDelete: Cascade)
+  nom     String
+  ordre   Int          @default(0)
+  lignes  LigneDevis[]
+
+  @@schema("tce_maroc")
+}
+
+model LigneDevis {
+  id           String    @id @default(uuid())
+  devisId      String
+  devis        Devis     @relation(fields: [devisId], references: [id], onDelete: Cascade)
+  lotId        String?
+  lot          LotDevis? @relation(fields: [lotId], references: [id], onDelete: SetNull)
+  designation  String
+  unite        String
+  quantite     Decimal   @db.Decimal(12, 3)
+  prixUnitaire Decimal   @db.Decimal(12, 2)
+  ordre        Int       @default(0)
+
+  @@index([devisId])
+  @@schema("tce_maroc")
+}
+
+// ===== COMMANDE =====
+
+enum StatutCommande {
+  BROUILLON
+  CONFIRMEE
+  ANNULEE
+  FACTUREE
+
+  @@schema("tce_maroc")
+}
+
+// Créée à partir d'un devis accepté (copie figée des lignes au moment de la
+// conversion) ou directement — les deux chemins existent dans le métier.
+model Commande {
+  id         String         @id @default(uuid())
+  numero     String         @unique
+  devisId    String?
+  devis      Devis?         @relation(fields: [devisId], references: [id], onDelete: SetNull)
+  clientId   String
+  client     Client         @relation(fields: [clientId], references: [id])
+  chantierId String?
+  chantier   Chantier?      @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+  date       DateTime       @default(now())
+  statut     StatutCommande @default(BROUILLON)
+  tauxTva    Decimal        @default(20) @db.Decimal(5, 2)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  lignes   LigneCommande[]
+  factures Facture[]
+
+  @@index([clientId])
+  @@schema("tce_maroc")
+}
+
+model LigneCommande {
+  id           String   @id @default(uuid())
+  commandeId   String
+  commande     Commande @relation(fields: [commandeId], references: [id], onDelete: Cascade)
+  designation  String
+  unite        String
+  quantite     Decimal  @db.Decimal(12, 3)
+  prixUnitaire Decimal  @db.Decimal(12, 2)
+  ordre        Int      @default(0)
+
+  @@index([commandeId])
+  @@schema("tce_maroc")
+}
+
+// ===== FACTURE =====
+
+enum TypeFacture {
+  FACTURE
+  AVOIR
+
+  @@schema("tce_maroc")
+}
+
+enum StatutFacture {
+  BROUILLON
+  ENVOYEE
+  PARTIELLEMENT_PAYEE
+  PAYEE
+  EN_RETARD
+  ANNULEE
+
+  @@schema("tce_maroc")
+}
+
+// Mentions légales marocaines obligatoires (ICE/IF/RC de la société,
+// numérotation continue) portées par la Societe + Numerotation existantes,
+// pas dupliquées ici.
+model Facture {
+  id                  String        @id @default(uuid())
+  numero              String        @unique
+  type                TypeFacture   @default(FACTURE)
+  devisId             String?
+  devis               Devis?        @relation(fields: [devisId], references: [id], onDelete: SetNull)
+  commandeId          String?
+  commande            Commande?     @relation(fields: [commandeId], references: [id], onDelete: SetNull)
+  clientId            String
+  client              Client        @relation(fields: [clientId], references: [id])
+  chantierId          String?
+  chantier            Chantier?     @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+  date                DateTime      @default(now())
+  dateEcheance        DateTime?
+  statut              StatutFacture @default(BROUILLON)
+  tauxTva             Decimal       @default(20) @db.Decimal(5, 2)
+  tauxRetenueGarantie Decimal       @default(0) @db.Decimal(5, 2)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  lignes    LigneFacture[]
+  paiements Paiement[]
+
+  @@index([clientId])
+  @@index([statut])
+  @@schema("tce_maroc")
+}
+
+model LigneFacture {
+  id           String  @id @default(uuid())
+  factureId    String
+  facture      Facture @relation(fields: [factureId], references: [id], onDelete: Cascade)
+  designation  String
+  unite        String
+  quantite     Decimal @db.Decimal(12, 3)
+  prixUnitaire Decimal @db.Decimal(12, 2)
+  ordre        Int     @default(0)
+
+  @@index([factureId])
+  @@schema("tce_maroc")
+}
+
+model Paiement {
+  id        String   @id @default(uuid())
+  factureId String
+  facture   Facture  @relation(fields: [factureId], references: [id], onDelete: Cascade)
+  montant   Decimal  @db.Decimal(12, 2)
+  date      DateTime
+  mode      String? // Espèces, Chèque, Virement...
+  reference String?
+  createdAt DateTime @default(now())
+
+  @@index([factureId])
   @@schema("tce_maroc")
 }
 

@@ -1,4 +1,4 @@
-import { Building2, HardHat, LayoutDashboard, LogOut, Truck, Users } from 'lucide-react';
+import { Building2, FileStack, FileText, HardHat, LayoutDashboard, LogOut, Receipt, Ruler, Truck, Users } from 'lucide-react';
 import { Navigate, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { t } from '@/i18n';
@@ -8,11 +8,15 @@ import { useAuthStore } from '@/store/auth';
 const NAV_ITEMS = [
   { to: '/', label: t.nav.dashboard, icon: LayoutDashboard },
   { to: '/chantiers', label: t.nav.chantiers, icon: Building2 },
+  { to: '/devis', label: t.nav.devis, icon: FileText },
+  { to: '/commandes', label: t.nav.commandes, icon: FileStack },
+  { to: '/factures', label: t.nav.factures, icon: Receipt },
+  { to: '/ouvrages', label: t.nav.ouvrages, icon: Ruler },
   { to: '/clients', label: t.nav.clients, icon: Users },
   { to: '/fournisseurs', label: t.nav.fournisseurs, icon: Truck },
   { to: '/sous-traitants', label: t.nav.sousTraitants, icon: HardHat },
 ];
-// Les autres entrées (Devis, ...) seront ajoutées ici module par
+// Les autres entrées (Achats/Stock, RH, Finances, ...) seront ajoutées ici module par
 // module, en même temps que leurs pages et routes.
 
 export default function ProtectedLayout() {

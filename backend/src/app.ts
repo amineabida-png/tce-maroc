@@ -13,6 +13,10 @@ import fournisseursRoutes from './modules/fournisseurs/routes';
 import sousTraitantsRoutes from './modules/sous-traitants/routes';
 import chantiersRoutes from './modules/chantiers/routes';
 import utilisateursRoutes from './modules/utilisateurs/routes';
+import ouvragesRoutes from './modules/ouvrages/routes';
+import devisRoutes from './modules/devis/routes';
+import commandesRoutes from './modules/commandes/routes';
+import facturesRoutes from './modules/factures/routes';
 
 export function createApp(): Express {
   const app = express();
@@ -44,6 +48,10 @@ export function createApp(): Express {
   app.use('/api/sous-traitants', sousTraitantsRoutes);
   app.use('/api/chantiers', chantiersRoutes);
   app.use('/api/utilisateurs', utilisateursRoutes);
+  app.use('/api/ouvrages', ouvragesRoutes);
+  app.use('/api/devis', devisRoutes);
+  app.use('/api/commandes', commandesRoutes);
+  app.use('/api/factures', facturesRoutes);
 
   // Le build sert le frontend statique compilé (une seule app Railway,
   // pas un service séparé par pièce du monorepo).
