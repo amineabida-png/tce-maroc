@@ -18,9 +18,9 @@ En production, un seul service sert les deux : le backend compile et sert le bui
 - [x] RH & Pointage (fiches employés, feuille de pointage journalière avec correction idempotente, coût de main-d'œuvre par chantier, export paie CSV)
 - [x] Finances & trésorerie (comptes bancaires/caisse, encaissements/décaissements, journal, rapprochement bancaire, échéancier)
 - [x] Reporting (chiffre d'affaires par période, marge par chantier, état du stock, créances clients, exports CSV)
-- [ ] Dashboard
+- [x] Dashboard (KPIs — chantiers actifs, CA du mois, trésorerie, créances —, graphique CA 6 mois, alertes)
 
-Construit module par module — voir les commits pour le détail de chaque étape.
+Tous les modules de la spécification initiale sont construits — voir les commits pour le détail de chaque étape. Modules non couverts par la spécification d'origine (ex. Administration/sécurité avancée au-delà du RBAC déjà en place, module Documents dédié) restent à discuter au besoin.
 
 ## Installation locale
 
