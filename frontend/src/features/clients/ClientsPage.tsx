@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, RotateCcw, Search, XCircle } from 'lucide-react';
+import { Building2, Landmark, Plus, RotateCcw, Search, User, Users, XCircle } from 'lucide-react';
 import { PaginationBar } from '@/components/PaginationBar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ApiError } from '@/lib/api';
 import * as api from './api';
 import { ClientFormDialog } from './ClientFormDialog';
-import { TYPE_CLIENT_LABELS, type Client } from './types';
+import { TYPE_CLIENT_LABELS, type Client, type TypeClient } from './types';
 
 export default function ClientsPage() {
   const queryClient = useQueryClient();
@@ -24,8 +25,15 @@ export default function ClientsPage() {
     queryKey: ['clients', q, page, showInactifs],
     queryFn: () => api.fetchClients({ q, page, includeInactifs: showInactifs }),
   });
+  const { data: resume } = useQuery({
+    queryKey: ['clients-resume'],
+    queryFn: () => api.fetchResumeClients(),
+  });
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['clients'] });
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ['clients'] });
+    queryClient.invalidateQueries({ queryKey: ['clients-resume'] });
+  };
 
   const createMutation = useMutation({
     mutationFn: api.createClient,
@@ -76,6 +84,43 @@ export default function ClientsPage() {
           Nouveau client
         </Button>
       </div>
+
+      {resume && resume.total > 0 && (
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Users className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Clients actifs</p>
+                <p className="text-xl font-semibold leading-tight">{resume.total}</p>
+              </div>
+            </CardContent>
+          </Card>
+          {(
+            [
+              ['ENTREPRISE', 'Entreprises', Building2],
+              ['PARTICULIER', 'Particuliers', User],
+              ['MAITRE_OUVRAGE_PUBLIC', "Maîtres d'ouvrage publics", Landmark],
+            ] as [TypeClient, string, typeof Building2][]
+          ).map(([type, label, Icon]) => (
+            <Card key={type}>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">{label}</p>
+                  <p className="text-xl font-semibold leading-tight">
+                    {resume.parType.find((t) => t.type === type)?.nombre ?? 0}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-72 max-w-full">

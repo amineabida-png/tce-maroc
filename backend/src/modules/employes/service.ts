@@ -122,3 +122,17 @@ export async function computePaie(debut: Date, fin: Date): Promise<LignePaie[]> 
     };
   });
 }
+
+// Résumé pour la bannière de synthèse en tête de la liste des employés.
+export async function getResume() {
+  const [parTypeContratRaw, tauxAgg] = await Promise.all([
+    prisma.employe.groupBy({ by: ['typeContrat'], where: { actif: true }, _count: true }),
+    prisma.employe.aggregate({ where: { actif: true, tauxHoraire: { not: null } }, _avg: { tauxHoraire: true } }),
+  ]);
+
+  const parTypeContrat = parTypeContratRaw.map((t) => ({ typeContrat: t.typeContrat, nombre: t._count }));
+  const total = parTypeContrat.reduce((sum, t) => sum + t.nombre, 0);
+  const tauxHoraireMoyen = tauxAgg._avg.tauxHoraire ? Math.round(Number(tauxAgg._avg.tauxHoraire) * 100) / 100 : null;
+
+  return { total, parTypeContrat, tauxHoraireMoyen };
+}

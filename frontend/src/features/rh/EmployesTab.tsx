@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Download, Plus, RotateCcw, Search, XCircle } from 'lucide-react';
+import { Banknote, Download, Plus, RotateCcw, Search, Users, XCircle } from 'lucide-react';
 import { PaginationBar } from '@/components/PaginationBar';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatMAD } from '@/lib/currency';
@@ -33,8 +34,15 @@ export function EmployesTab() {
     queryKey: ['employes', q, page],
     queryFn: () => api.fetchEmployes({ q, page }),
   });
+  const { data: resume } = useQuery({
+    queryKey: ['employes-resume'],
+    queryFn: () => api.fetchResumeEmployes(),
+  });
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['employes'] });
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ['employes'] });
+    queryClient.invalidateQueries({ queryKey: ['employes-resume'] });
+  };
 
   const createMutation = useMutation({
     mutationFn: api.createEmploye,
@@ -104,6 +112,51 @@ export function EmployesTab() {
           {paieError && <p className="text-sm text-destructive">{paieError}</p>}
         </div>
       </div>
+
+      {resume && resume.total > 0 && (
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Users className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Employés actifs</p>
+                <p className="text-xl font-semibold leading-tight">{resume.total}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs font-medium text-muted-foreground">CDI</p>
+              <p className="text-xl font-semibold leading-tight">
+                {resume.parTypeContrat.find((t) => t.typeContrat === 'CDI')?.nombre ?? 0}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-xs font-medium text-muted-foreground">CDD</p>
+              <p className="text-xl font-semibold leading-tight">
+                {resume.parTypeContrat.find((t) => t.typeContrat === 'CDD')?.nombre ?? 0}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <Banknote className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Taux horaire moyen</p>
+                <p className="text-xl font-semibold leading-tight">
+                  {resume.tauxHoraireMoyen !== null ? formatMAD(resume.tauxHoraireMoyen) : '—'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="flex items-center justify-between">
         <div className="relative w-72 max-w-full">

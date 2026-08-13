@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Plus, Search } from 'lucide-react';
+import { Banknote, CheckCircle2, Clock, Package, Plus, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PaginationBar } from '@/components/PaginationBar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { SelectNative } from '@/components/ui/select-native';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,6 +13,8 @@ import { formatDate } from '@/lib/date';
 import { formatMAD } from '@/lib/currency';
 import * as api from './api';
 import { STATUT_CF_LABELS, STATUT_CF_VARIANT } from './types';
+
+const STATUTS_EN_COURS = ['BROUILLON', 'ENVOYEE', 'PARTIELLEMENT_RECUE'];
 
 export default function CommandesFournisseurPage() {
   const navigate = useNavigate();
@@ -23,6 +26,12 @@ export default function CommandesFournisseurPage() {
     queryKey: ['commandes-fournisseur-list', q, statut, page],
     queryFn: () => api.fetchList({ q, page, statut: statut || undefined }),
   });
+  const { data: resume } = useQuery({
+    queryKey: ['commandes-fournisseur-resume'],
+    queryFn: () => api.fetchResume(),
+  });
+  const enCours = resume?.parStatut.filter((s) => STATUTS_EN_COURS.includes(s.statut)).reduce((sum, s) => sum + s.nombre, 0) ?? 0;
+  const recues = resume?.parStatut.find((s) => s.statut === 'RECUE')?.nombre ?? 0;
 
   return (
     <div className="space-y-6">
@@ -36,6 +45,55 @@ export default function CommandesFournisseurPage() {
           Nouvelle commande
         </Button>
       </div>
+
+      {resume && resume.total > 0 && (
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Package className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Commandes</p>
+                <p className="text-xl font-semibold leading-tight">{resume.total}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <Clock className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">En cours</p>
+                <p className="text-xl font-semibold leading-tight">{enCours}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <CheckCircle2 className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Reçues</p>
+                <p className="text-xl font-semibold leading-tight">{recues}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <Banknote className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium text-muted-foreground">Montant en cours TTC</p>
+                <p className="truncate text-xl font-semibold leading-tight">{formatMAD(resume.montantEnCours)}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-72 max-w-full">

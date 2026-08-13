@@ -5,6 +5,7 @@ import {
   createClientHandler,
   deactivateClientHandler,
   getClientHandler,
+  getResumeHandler,
   listClientsHandler,
   reactivateClientHandler,
   updateClientHandler,
@@ -14,6 +15,7 @@ const router = Router();
 const CAN_WRITE = ['ADMIN', 'DIRECTEUR', 'COMMERCIAL'];
 
 router.get('/', requireAuth, asyncHandler(listClientsHandler));
+router.get('/resume', requireAuth, asyncHandler(getResumeHandler));
 router.get('/:id', requireAuth, asyncHandler(getClientHandler));
 router.post('/', requireAuth, requireRole(...CAN_WRITE), asyncHandler(createClientHandler));
 router.put('/:id', requireAuth, requireRole(...CAN_WRITE), asyncHandler(updateClientHandler));

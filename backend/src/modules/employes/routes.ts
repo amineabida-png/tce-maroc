@@ -6,6 +6,7 @@ import {
   deactivateEmployeHandler,
   exportPaieHandler,
   getEmployeHandler,
+  getResumeHandler,
   listEmployesHandler,
   reactivateEmployeHandler,
   updateEmployeHandler,
@@ -16,6 +17,7 @@ const CAN_WRITE = ['ADMIN', 'DIRECTEUR'];
 const CAN_EXPORT_PAIE = ['ADMIN', 'DIRECTEUR', 'COMPTABLE'];
 
 router.get('/export-paie', requireAuth, requireRole(...CAN_EXPORT_PAIE), asyncHandler(exportPaieHandler));
+router.get('/resume', requireAuth, asyncHandler(getResumeHandler));
 router.get('/', requireAuth, asyncHandler(listEmployesHandler));
 router.get('/:id', requireAuth, asyncHandler(getEmployeHandler));
 router.post('/', requireAuth, requireRole(...CAN_WRITE), asyncHandler(createEmployeHandler));

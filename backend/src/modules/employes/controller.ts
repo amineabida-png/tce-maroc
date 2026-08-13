@@ -12,6 +12,10 @@ export async function listEmployesHandler(req: Request, res: Response): Promise<
   res.json(await employesService.listEmployes(params, includeInactifs));
 }
 
+export async function getResumeHandler(_req: Request, res: Response): Promise<void> {
+  res.json(await employesService.getResume());
+}
+
 export async function getEmployeHandler(req: Request, res: Response): Promise<void> {
   res.json(await employesService.getEmploye(req.params.id as string));
 }

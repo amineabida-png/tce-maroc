@@ -25,6 +25,14 @@ export function fetchFournisseurs(params: { q?: string; page?: number; includeIn
   return apiFetch<Paginated<Fournisseur>>(`/api/fournisseurs?${qs.toString()}`);
 }
 
+export interface ResumeFournisseurs {
+  total: number;
+  evaluationMoyenne: number | null;
+}
+export function fetchResumeFournisseurs() {
+  return apiFetch<ResumeFournisseurs>('/api/fournisseurs/resume');
+}
+
 function toPayload(values: FournisseurFormValues) {
   return { ...values, evaluation: values.evaluation ? Number(values.evaluation) : null };
 }

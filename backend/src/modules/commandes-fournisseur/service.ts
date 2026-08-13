@@ -238,3 +238,27 @@ export async function receptionner(id: string, input: ReceptionInput) {
 
   return getCommandeFournisseur(id);
 }
+
+// Résumé pour la bannière de synthèse en tête de la liste — répartition par
+// statut + montant total des commandes encore en cours (pas encore reçues
+// ni annulées).
+const STATUTS_EN_COURS: StatutCommandeFournisseur[] = ['BROUILLON', 'ENVOYEE', 'PARTIELLEMENT_RECUE'];
+
+export async function getResume() {
+  const [parStatutRaw, enCours] = await Promise.all([
+    prisma.commandeFournisseur.groupBy({ by: ['statut'], _count: true }),
+    prisma.commandeFournisseur.findMany({
+      where: { statut: { in: STATUTS_EN_COURS } },
+      select: { tauxTva: true, lignes: { select: { quantiteCommandee: true, prixUnitaire: true } } },
+    }),
+  ]);
+
+  const parStatut = parStatutRaw.map((s) => ({ statut: s.statut, nombre: s._count }));
+  const total = parStatut.reduce((sum, s) => sum + s.nombre, 0);
+  const montantEnCours = enCours.reduce((sum, cf) => {
+    const lignesPourCalcul = cf.lignes.map((l) => ({ quantite: l.quantiteCommandee, prixUnitaire: l.prixUnitaire }));
+    return sum + computeTotaux(lignesPourCalcul, cf.tauxTva).montantTTC;
+  }, 0);
+
+  return { total, parStatut, montantEnCours: Math.round(montantEnCours * 100) / 100 };
+}

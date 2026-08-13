@@ -38,6 +38,15 @@ export function fetchList(params: { q?: string; page?: number; statut?: string }
   return apiFetch<Paginated<CommandeFournisseurSummary>>(`/api/commandes-fournisseur?${qs.toString()}`);
 }
 
+export interface ResumeCommandesFournisseur {
+  total: number;
+  parStatut: { statut: StatutCommandeFournisseur; nombre: number }[];
+  montantEnCours: number;
+}
+export function fetchResume() {
+  return apiFetch<ResumeCommandesFournisseur>('/api/commandes-fournisseur/resume');
+}
+
 export function fetchOne(id: string) {
   return apiFetch<CommandeFournisseurDetail>(`/api/commandes-fournisseur/${id}`);
 }

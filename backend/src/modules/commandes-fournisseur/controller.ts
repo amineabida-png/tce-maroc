@@ -12,6 +12,10 @@ export async function listHandler(req: Request, res: Response): Promise<void> {
   res.json(await service.listCommandesFournisseur(params, { statut, fournisseurId, chantierId }));
 }
 
+export async function getResumeHandler(_req: Request, res: Response): Promise<void> {
+  res.json(await service.getResume());
+}
+
 export async function getHandler(req: Request, res: Response): Promise<void> {
   res.json(await service.getCommandeFournisseur(req.params.id as string));
 }

@@ -2,6 +2,15 @@ import { apiDownload, apiFetch } from '@/lib/api';
 import type { Paginated } from '@/lib/types';
 import type { CoutMainDoeuvre, Employe, Pointage, StatutPointage, TypeContrat } from './types';
 
+export interface ResumeEmployes {
+  total: number;
+  parTypeContrat: { typeContrat: TypeContrat; nombre: number }[];
+  tauxHoraireMoyen: number | null;
+}
+export function fetchResumeEmployes() {
+  return apiFetch<ResumeEmployes>('/api/employes/resume');
+}
+
 export interface EmployeFormValues {
   nom: string;
   prenom: string;

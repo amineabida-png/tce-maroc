@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, RotateCcw, Search, XCircle } from 'lucide-react';
+import { Plus, RotateCcw, Search, Star, Truck, XCircle } from 'lucide-react';
 import { PaginationBar } from '@/components/PaginationBar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ApiError } from '@/lib/api';
@@ -24,8 +25,15 @@ export default function FournisseursPage() {
     queryKey: ['fournisseurs', q, page, showInactifs],
     queryFn: () => api.fetchFournisseurs({ q, page, includeInactifs: showInactifs }),
   });
+  const { data: resume } = useQuery({
+    queryKey: ['fournisseurs-resume'],
+    queryFn: () => api.fetchResumeFournisseurs(),
+  });
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['fournisseurs'] });
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ['fournisseurs'] });
+    queryClient.invalidateQueries({ queryKey: ['fournisseurs-resume'] });
+  };
 
   const createMutation = useMutation({
     mutationFn: api.createFournisseur,
@@ -74,6 +82,35 @@ export default function FournisseursPage() {
           Nouveau fournisseur
         </Button>
       </div>
+
+      {resume && resume.total > 0 && (
+        <div className="grid grid-cols-2 gap-3 sm:max-w-md">
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Truck className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Fournisseurs actifs</p>
+                <p className="text-xl font-semibold leading-tight">{resume.total}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-brand">
+                <Star className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Évaluation moyenne</p>
+                <p className="text-xl font-semibold leading-tight">
+                  {resume.evaluationMoyenne !== null ? `${resume.evaluationMoyenne} / 5` : '—'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-72 max-w-full">

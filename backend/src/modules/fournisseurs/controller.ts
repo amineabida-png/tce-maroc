@@ -14,6 +14,10 @@ export async function getFournisseurHandler(req: Request, res: Response): Promis
   res.json(await fournisseursService.getFournisseur(req.params.id as string));
 }
 
+export async function getResumeHandler(_req: Request, res: Response): Promise<void> {
+  res.json(await fournisseursService.getResume());
+}
+
 export async function createFournisseurHandler(req: Request, res: Response): Promise<void> {
   const data = createFournisseurSchema.parse(req.body);
   const fournisseur = await fournisseursService.createFournisseur(data);

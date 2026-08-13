@@ -5,6 +5,7 @@ import {
   createFournisseurHandler,
   deactivateFournisseurHandler,
   getFournisseurHandler,
+  getResumeHandler,
   listFournisseursHandler,
   reactivateFournisseurHandler,
   updateFournisseurHandler,
@@ -14,6 +15,7 @@ const router = Router();
 const CAN_WRITE = ['ADMIN', 'DIRECTEUR', 'MAGASINIER'];
 
 router.get('/', requireAuth, asyncHandler(listFournisseursHandler));
+router.get('/resume', requireAuth, asyncHandler(getResumeHandler));
 router.get('/:id', requireAuth, asyncHandler(getFournisseurHandler));
 router.post('/', requireAuth, requireRole(...CAN_WRITE), asyncHandler(createFournisseurHandler));
 router.put('/:id', requireAuth, requireRole(...CAN_WRITE), asyncHandler(updateFournisseurHandler));

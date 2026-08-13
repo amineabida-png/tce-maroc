@@ -61,3 +61,11 @@ export async function reactivateClient(id: string) {
   await getClient(id);
   return prisma.client.update({ where: { id }, data: { actif: true } });
 }
+
+// Résumé pour la bannière de synthèse en tête de la liste des clients.
+export async function getResume() {
+  const parTypeRaw = await prisma.client.groupBy({ by: ['type'], where: { actif: true }, _count: true });
+  const parType = parTypeRaw.map((t) => ({ type: t.type, nombre: t._count }));
+  const total = parType.reduce((sum, t) => sum + t.nombre, 0);
+  return { total, parType };
+}

@@ -14,6 +14,10 @@ export async function getClientHandler(req: Request, res: Response): Promise<voi
   res.json(await clientsService.getClient(req.params.id as string));
 }
 
+export async function getResumeHandler(_req: Request, res: Response): Promise<void> {
+  res.json(await clientsService.getResume());
+}
+
 export async function createClientHandler(req: Request, res: Response): Promise<void> {
   const data = createClientSchema.parse(req.body);
   const client = await clientsService.createClient(data);

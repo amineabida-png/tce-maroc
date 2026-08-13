@@ -55,3 +55,13 @@ export async function reactivateFournisseur(id: string) {
   await getFournisseur(id);
   return prisma.fournisseur.update({ where: { id }, data: { actif: true } });
 }
+
+// Résumé pour la bannière de synthèse en tête de la liste des fournisseurs.
+export async function getResume() {
+  const [total, evaluationAgg] = await Promise.all([
+    prisma.fournisseur.count({ where: { actif: true } }),
+    prisma.fournisseur.aggregate({ where: { actif: true, evaluation: { not: null } }, _avg: { evaluation: true } }),
+  ]);
+  const evaluationMoyenne = evaluationAgg._avg.evaluation ? Math.round(evaluationAgg._avg.evaluation * 10) / 10 : null;
+  return { total, evaluationMoyenne };
+}

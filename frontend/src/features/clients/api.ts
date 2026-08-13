@@ -1,6 +1,6 @@
 import { apiFetch } from '@/lib/api';
 import type { Paginated } from '@/lib/types';
-import type { Client } from './types';
+import type { Client, TypeClient } from './types';
 
 export interface ClientFormValues {
   type: string;
@@ -22,6 +22,14 @@ export function fetchClients(params: { q?: string; page?: number; includeInactif
   if (params.page) qs.set('page', String(params.page));
   if (params.includeInactifs) qs.set('includeInactifs', 'true');
   return apiFetch<Paginated<Client>>(`/api/clients?${qs.toString()}`);
+}
+
+export interface ResumeClients {
+  total: number;
+  parType: { type: TypeClient; nombre: number }[];
+}
+export function fetchResumeClients() {
+  return apiFetch<ResumeClients>('/api/clients/resume');
 }
 
 export function createClient(data: ClientFormValues) {
