@@ -9,6 +9,7 @@ export const typeEntiteDocumentEnum = z.enum([
   'COMMANDE',
   'FACTURE',
   'COMMANDE_FOURNISSEUR',
+  'BON_LIVRAISON',
 ]);
 
 // multer place le fichier dans req.file et les autres champs du

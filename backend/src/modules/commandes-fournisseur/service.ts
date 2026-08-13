@@ -25,7 +25,7 @@ const TRANSITIONS_AUTORISEES: Record<StatutCommandeFournisseur, StatutCommandeFo
 };
 
 const CF_INCLUDE = {
-  fournisseur: { select: { id: true, nom: true } },
+  fournisseur: { select: { id: true, nom: true, ice: true, adresse: true, ville: true } },
   chantier: { select: { id: true, nom: true } },
   lignes: { orderBy: { ordre: 'asc' }, include: { article: { select: { id: true, nom: true } } } },
 } satisfies Prisma.CommandeFournisseurInclude;

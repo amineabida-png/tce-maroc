@@ -14,33 +14,46 @@ const POSITION_LABELS: Record<PositionCachet, string> = {
   centre: 'Centré',
 };
 
-const POSITION_CLASSES: Record<PositionCachet, string> = {
-  'bas-droite': 'bottom-16 right-16',
-  'bas-gauche': 'bottom-16 left-16',
-  centre: 'bottom-16 left-1/2 -translate-x-1/2',
-};
+export interface CachetRenderProps {
+  /** null si le cachet est masqué ou non configuré — ne rien afficher dans ce cas. */
+  element: ReactNode | null;
+}
 
 interface DocumentPrintPageProps {
   title: string;
   numero: string;
-  children: ReactNode;
+  date: string;
+  children: (cachet: CachetRenderProps) => ReactNode;
 }
 
-// Mise en page A4 partagée par tous les documents imprimables (devis,
-// factures, bons de commande, bons de commande fournisseur) : en-tête
-// société et cachet togglables à la demande de l'utilisateur, jamais
-// affichés par défaut sur l'impression.
-export function DocumentPrintPage({ title, numero, children }: DocumentPrintPageProps) {
+// Mise en page A4 partagée (option "Chantier BTP") : bandeau couleur,
+// pastille titre, en-tête togglable, cachet togglable (taille/position). Le
+// contenu (parties, tableau, totaux, bande de signature) reste au document
+// appelant via `children`, qui reçoit l'élément cachet à placer où il veut
+// dans sa propre bande de signature.
+export function DocumentPrintPage({ title, numero, date, children }: DocumentPrintPageProps) {
   const navigate = useNavigate();
   const [showEntete, setShowEntete] = useState(true);
   const [showCachet, setShowCachet] = useState(false);
-  const [cachetTaille, setCachetTaille] = useState(140);
+  const [cachetTaille, setCachetTaille] = useState(90);
   const [cachetPosition, setCachetPosition] = useState<PositionCachet>('bas-droite');
 
   const { data: societe } = useQuery({
     queryKey: ['societe'],
     queryFn: () => societeApi.fetchSociete(),
   });
+
+  if (!societe) return <p className="text-muted-foreground">Chargement…</p>;
+
+  const cachetElement =
+    showCachet && societe.cachet ? (
+      <img
+        src={societe.cachet}
+        alt="Cachet"
+        className="pointer-events-none opacity-90"
+        style={{ width: cachetTaille, transform: cachetPosition === 'centre' ? undefined : 'rotate(-4deg)' }}
+      />
+    ) : null;
 
   return (
     <div className="space-y-4">
@@ -55,28 +68,16 @@ export function DocumentPrintPage({ title, numero, children }: DocumentPrintPage
             Afficher l'en-tête
           </label>
           <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            <input type="checkbox" checked={showCachet} onChange={(e) => setShowCachet(e.target.checked)} disabled={!societe?.cachet} />
+            <input type="checkbox" checked={showCachet} onChange={(e) => setShowCachet(e.target.checked)} disabled={!societe.cachet} />
             Afficher le cachet
           </label>
-          {showCachet && societe?.cachet && (
+          {showCachet && societe.cachet && (
             <>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>Taille</span>
-                <input
-                  type="range"
-                  min={80}
-                  max={240}
-                  step={10}
-                  value={cachetTaille}
-                  onChange={(e) => setCachetTaille(Number(e.target.value))}
-                  className="w-24"
-                />
+                <input type="range" min={60} max={160} step={10} value={cachetTaille} onChange={(e) => setCachetTaille(Number(e.target.value))} className="w-24" />
               </div>
-              <SelectNative
-                className="w-36"
-                value={cachetPosition}
-                onChange={(e) => setCachetPosition(e.target.value as PositionCachet)}
-              >
+              <SelectNative className="w-36" value={cachetPosition} onChange={(e) => setCachetPosition(e.target.value as PositionCachet)}>
                 {(Object.keys(POSITION_LABELS) as PositionCachet[]).map((p) => (
                   <option key={p} value={p}>
                     {POSITION_LABELS[p]}
@@ -85,11 +86,7 @@ export function DocumentPrintPage({ title, numero, children }: DocumentPrintPage
               </SelectNative>
             </>
           )}
-          {showCachet && !societe?.cachet && (
-            <span className="text-sm text-muted-foreground">
-              Aucun cachet importé — Paramètres société → Cachet d'entreprise.
-            </span>
-          )}
+          {showCachet && !societe.cachet && <span className="text-sm text-muted-foreground">Aucun cachet importé — Paramètres société.</span>}
         </div>
         <Button size="sm" className="gap-1.5" onClick={() => window.print()}>
           <Printer className="h-4 w-4" />
@@ -98,53 +95,48 @@ export function DocumentPrintPage({ title, numero, children }: DocumentPrintPage
       </div>
 
       <div className="flex justify-center bg-muted/30 p-6 print:bg-transparent print:p-0">
-        <div className="print-sheet relative min-h-[297mm] w-[210mm] bg-white p-[15mm] text-black shadow-lg">
-          {showEntete && societe && (
-            <div className="mb-8 flex items-start justify-between gap-6 border-b border-black/20 pb-4">
-              <div className="flex items-center gap-4">
-                {societe.logo && <img src={societe.logo} alt={societe.nom} className="h-16 w-16 object-contain" />}
-                <div>
-                  <p className="text-lg font-bold">{societe.nom}</p>
-                  {societe.formeJuridique && <p className="text-xs text-black/70">{societe.formeJuridique}</p>}
-                  {societe.adresse && <p className="text-xs text-black/70">{societe.adresse}</p>}
-                  <p className="text-xs text-black/70">
-                    {[societe.ville, societe.telephone, societe.email].filter(Boolean).join(' · ')}
-                  </p>
-                  <p className="text-[10px] text-black/60">
-                    {[
-                      societe.ice && `ICE ${societe.ice}`,
-                      societe.rc && `RC ${societe.rc}`,
-                      societe.identifiantFiscal && `IF ${societe.identifiantFiscal}`,
-                      societe.patente && `Patente ${societe.patente}`,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </p>
+        <div className="print-sheet relative flex min-h-[297mm] w-[210mm] flex-col bg-white text-black shadow-lg">
+          {showEntete ? (
+            <>
+              <div className="h-[6px] bg-gradient-to-r from-[#1b3a66] to-[#c2691f]" />
+              <div className="flex items-start justify-between px-[8%] pt-6">
+                <div className="flex items-center gap-3">
+                  {societe.logo ? (
+                    <img src={societe.logo} alt={societe.nom} className="h-[38px] w-[38px] object-contain" />
+                  ) : (
+                    <div className="flex h-[38px] w-[38px] items-center justify-center rounded-lg bg-[#1b3a66] text-[13px] font-extrabold text-white">
+                      {societe.nom.slice(0, 3).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-[15px] font-extrabold leading-tight text-[#1a2330]">{societe.nom}</p>
+                    <p className="text-[9px] text-[#7c8794]">
+                      {[societe.ice && `ICE ${societe.ice}`, societe.rc && `RC ${societe.rc}`, societe.identifiantFiscal && `IF ${societe.identifiantFiscal}`, societe.patente && `Patente ${societe.patente}`]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </p>
+                    <p className="text-[9px] text-[#7c8794]">{[societe.adresse, societe.ville, societe.telephone].filter(Boolean).join(' · ')}</p>
+                  </div>
+                </div>
+                <div className="rounded-full bg-[#c2691f] px-4 py-2 text-right text-[13px] font-extrabold tracking-wide text-white">
+                  {title}
+                  <span className="block text-[10px] font-semibold opacity-90">
+                    {numero} · {date}
+                  </span>
                 </div>
               </div>
-              <div className="shrink-0 text-right">
-                <p className="text-xl font-bold uppercase tracking-wide">{title}</p>
-                <p className="text-sm text-black/70">N° {numero}</p>
+            </>
+          ) : (
+            <div className="flex justify-end px-[8%] pt-8">
+              <div className="rounded-full bg-[#c2691f] px-4 py-2 text-right text-[13px] font-extrabold tracking-wide text-white">
+                {title}
+                <span className="block text-[10px] font-semibold opacity-90">
+                  {numero} · {date}
+                </span>
               </div>
             </div>
           )}
-          {!showEntete && (
-            <div className="mb-8 text-right">
-              <p className="text-xl font-bold uppercase tracking-wide">{title}</p>
-              <p className="text-sm text-black/70">N° {numero}</p>
-            </div>
-          )}
-
-          {children}
-
-          {showCachet && societe?.cachet && (
-            <img
-              src={societe.cachet}
-              alt="Cachet"
-              className={`pointer-events-none absolute opacity-90 ${POSITION_CLASSES[cachetPosition]}`}
-              style={{ width: cachetTaille }}
-            />
-          )}
+          <div className="flex flex-1 flex-col px-[8%] pb-[8%] pt-5">{children({ element: cachetElement })}</div>
         </div>
       </div>
     </div>

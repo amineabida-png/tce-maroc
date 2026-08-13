@@ -29,13 +29,14 @@ export interface Societe {
   numerotations: Numerotation[];
 }
 
-export const TYPES_DOCUMENT_NUMEROTES = ['DEVIS', 'BON_COMMANDE', 'FACTURE', 'BON_COMMANDE_FOURNISSEUR'] as const;
+export const TYPES_DOCUMENT_NUMEROTES = ['DEVIS', 'BON_COMMANDE', 'FACTURE', 'BON_COMMANDE_FOURNISSEUR', 'BON_LIVRAISON'] as const;
 
 export const TYPE_DOCUMENT_LABELS: Record<string, string> = {
   DEVIS: 'Devis',
   BON_COMMANDE: 'Bon de commande',
   FACTURE: 'Facture',
   BON_COMMANDE_FOURNISSEUR: 'Bon de commande fournisseur',
+  BON_LIVRAISON: 'Bon de livraison',
 };
 
 export const TYPE_DOCUMENT_PREFIXE_DEFAUT: Record<string, string> = {
@@ -43,4 +44,5 @@ export const TYPE_DOCUMENT_PREFIXE_DEFAUT: Record<string, string> = {
   BON_COMMANDE: 'BC',
   FACTURE: 'FACT',
   BON_COMMANDE_FOURNISSEUR: 'BCF',
+  BON_LIVRAISON: 'BL',
 };

@@ -27,6 +27,7 @@ export const fr = {
     devis: 'Devis',
     commandes: 'Bons de commande',
     factures: 'Factures',
+    bonsLivraison: 'Bons de livraison',
     clients: 'Clients',
     fournisseurs: 'Fournisseurs',
     sousTraitants: 'Sous-traitants',

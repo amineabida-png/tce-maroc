@@ -21,7 +21,7 @@ function normalizeDate(value: string | null | undefined | ''): Date | null | und
 const STATUTS_MODIFIABLES: StatutFacture[] = ['BROUILLON'];
 
 const FACTURE_INCLUDE = {
-  client: { select: { id: true, nom: true } },
+  client: { select: { id: true, nom: true, ice: true, adresse: true, ville: true } },
   chantier: { select: { id: true, nom: true } },
   devis: { select: { id: true, numero: true } },
   commande: { select: { id: true, numero: true } },

@@ -35,7 +35,7 @@ const TRANSITIONS_AUTORISEES: Record<StatutDevis, StatutDevis[]> = {
 };
 
 const DEVIS_INCLUDE = {
-  client: { select: { id: true, nom: true } },
+  client: { select: { id: true, nom: true, ice: true, adresse: true, ville: true } },
   chantier: { select: { id: true, nom: true } },
   lots: { orderBy: { ordre: 'asc' }, include: { lignes: { orderBy: { ordre: 'asc' } } } },
   lignes: { where: { lotId: null }, orderBy: { ordre: 'asc' } },

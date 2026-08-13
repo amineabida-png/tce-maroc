@@ -41,4 +41,5 @@ export interface Commande extends CommandeSummary {
   tauxTva: string;
   devis: { id: string; numero: string } | null;
   lignes: LigneCommande[];
+  client: { id: string; nom: string; ice: string | null; adresse: string | null; ville: string | null };
 }

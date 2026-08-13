@@ -54,4 +54,5 @@ export interface Devis extends DevisSummary {
   conditions: string | null;
   lots: LotDevis[];
   lignesSansLot: LigneDevis[];
+  client: { id: string; nom: string; ice: string | null; adresse: string | null; ville: string | null };
 }

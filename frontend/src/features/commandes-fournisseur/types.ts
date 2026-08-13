@@ -46,4 +46,5 @@ export interface CommandeFournisseurSummary {
 export interface CommandeFournisseurDetail extends CommandeFournisseurSummary {
   tauxTva: string;
   lignes: LigneCommandeFournisseur[];
+  fournisseur: { id: string; nom: string; ice: string | null; adresse: string | null; ville: string | null };
 }

@@ -143,10 +143,11 @@ model Client {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
-  chantiers Chantier[]
-  devis     Devis[]
-  commandes Commande[]
-  factures  Facture[]
+  chantiers     Chantier[]
+  devis         Devis[]
+  commandes     Commande[]
+  factures      Facture[]
+  bonsLivraison BonLivraison[]
 
   @@index([nom])
   @@schema("tce_maroc")
@@ -247,6 +248,7 @@ model Chantier {
   commandes            Commande[]
   factures             Facture[]
   commandesFournisseur CommandeFournisseur[]
+  bonsLivraison        BonLivraison[]
   mouvementsStock      MouvementStock[]
   pointages            Pointage[]
   mouvementsTresorerie MouvementTresorerie[]
@@ -438,8 +440,9 @@ model Commande {
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
-  lignes   LigneCommande[]
-  factures Facture[]
+  lignes        LigneCommande[]
+  factures      Facture[]
+  bonsLivraison BonLivraison[]
 
   @@index([clientId])
   @@schema("tce_maroc")
@@ -456,6 +459,51 @@ model LigneCommande {
   ordre        Int      @default(0)
 
   @@index([commandeId])
+  @@schema("tce_maroc")
+}
+
+// ===== BON DE LIVRAISON =====
+
+// Document non fiscal : constate la livraison réelle (quantités remises),
+// distinct de la facture (ce qui est dû) et sans détail TVA/HT/TTC. Pas de
+// statut/workflow — librement modifiable/supprimable, à la différence des
+// pièces financières dont le verrouillage protège paiements/stock déjà
+// engagés. Rattaché à un client (obligatoire), un chantier et une commande
+// d'origine (facultatifs, pour traçabilité devis/commande → livraison).
+model BonLivraison {
+  id            String    @id @default(uuid())
+  numero        String    @unique
+  clientId      String
+  client        Client    @relation(fields: [clientId], references: [id])
+  chantierId    String?
+  chantier      Chantier? @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+  commandeId    String?
+  commande      Commande? @relation(fields: [commandeId], references: [id], onDelete: SetNull)
+  date          DateTime  @default(now())
+  lieuLivraison String?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  lignes LigneBonLivraison[]
+
+  @@index([clientId])
+  @@index([chantierId])
+  @@schema("tce_maroc")
+}
+
+model LigneBonLivraison {
+  id                String       @id @default(uuid())
+  bonLivraisonId    String
+  bonLivraison      BonLivraison @relation(fields: [bonLivraisonId], references: [id], onDelete: Cascade)
+  designation       String
+  unite             String
+  quantiteCommandee Decimal?     @db.Decimal(12, 3)
+  quantiteLivree    Decimal      @db.Decimal(12, 3)
+  observations      String?
+  ordre             Int          @default(0)
+
+  @@index([bonLivraisonId])
   @@schema("tce_maroc")
 }
 
@@ -838,6 +886,7 @@ enum TypeEntiteDocument {
   COMMANDE
   FACTURE
   COMMANDE_FOURNISSEUR
+  BON_LIVRAISON
 
   @@schema("tce_maroc")
 }

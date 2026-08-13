@@ -19,6 +19,7 @@ import commandesRoutes from './modules/commandes/routes';
 import facturesRoutes from './modules/factures/routes';
 import articlesRoutes from './modules/articles/routes';
 import commandesFournisseurRoutes from './modules/commandes-fournisseur/routes';
+import bonsLivraisonRoutes from './modules/bons-livraison/routes';
 import mouvementsStockRoutes from './modules/mouvements-stock/routes';
 import employesRoutes from './modules/employes/routes';
 import pointagesRoutes from './modules/pointages/routes';
@@ -65,6 +66,7 @@ export function createApp(): Express {
   app.use('/api/factures', facturesRoutes);
   app.use('/api/articles', articlesRoutes);
   app.use('/api/commandes-fournisseur', commandesFournisseurRoutes);
+  app.use('/api/bons-livraison', bonsLivraisonRoutes);
   app.use('/api/mouvements-stock', mouvementsStockRoutes);
   app.use('/api/employes', employesRoutes);
   app.use('/api/pointages', pointagesRoutes);

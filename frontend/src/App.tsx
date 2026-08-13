@@ -16,6 +16,9 @@ import CommandePrintPage from '@/features/commandes/CommandePrintPage';
 import FacturesPage from '@/features/factures/FacturesPage';
 import FactureDetailPage from '@/features/factures/FactureDetailPage';
 import FacturePrintPage from '@/features/factures/FacturePrintPage';
+import BonsLivraisonPage from '@/features/bons-livraison/BonsLivraisonPage';
+import BonLivraisonDetailPage from '@/features/bons-livraison/BonLivraisonDetailPage';
+import BonLivraisonPrintPage from '@/features/bons-livraison/BonLivraisonPrintPage';
 import ArticlesPage from '@/features/articles/ArticlesPage';
 import CommandesFournisseurPage from '@/features/commandes-fournisseur/CommandesFournisseurPage';
 import CommandeFournisseurDetailPage from '@/features/commandes-fournisseur/CommandeFournisseurDetailPage';
@@ -49,6 +52,9 @@ export default function App() {
         <Route path="/factures" element={<FacturesPage />} />
         <Route path="/factures/:id" element={<FactureDetailPage />} />
         <Route path="/factures/:id/imprimer" element={<FacturePrintPage />} />
+        <Route path="/bons-livraison" element={<BonsLivraisonPage />} />
+        <Route path="/bons-livraison/:id" element={<BonLivraisonDetailPage />} />
+        <Route path="/bons-livraison/:id/imprimer" element={<BonLivraisonPrintPage />} />
         <Route path="/articles" element={<ArticlesPage />} />
         <Route path="/commandes-fournisseur" element={<CommandesFournisseurPage />} />
         <Route path="/commandes-fournisseur/:id" element={<CommandeFournisseurDetailPage />} />

@@ -23,7 +23,7 @@ const TRANSITIONS_AUTORISEES: Record<StatutCommande, StatutCommande[]> = {
 };
 
 const COMMANDE_INCLUDE = {
-  client: { select: { id: true, nom: true } },
+  client: { select: { id: true, nom: true, ice: true, adresse: true, ville: true } },
   chantier: { select: { id: true, nom: true } },
   devis: { select: { id: true, numero: true } },
   lignes: { orderBy: { ordre: 'asc' } },

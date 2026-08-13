@@ -62,4 +62,5 @@ export interface Facture extends FactureSummary {
   commande: { id: string; numero: string } | null;
   lignes: LigneFacture[];
   paiements: Paiement[];
+  client: { id: string; nom: string; ice: string | null; adresse: string | null; ville: string | null };
 }

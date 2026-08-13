@@ -6,7 +6,8 @@ export type TypeEntiteDocument =
   | 'DEVIS'
   | 'COMMANDE'
   | 'FACTURE'
-  | 'COMMANDE_FOURNISSEUR';
+  | 'COMMANDE_FOURNISSEUR'
+  | 'BON_LIVRAISON';
 
 export interface DocumentMetadonnees {
   id: string;
