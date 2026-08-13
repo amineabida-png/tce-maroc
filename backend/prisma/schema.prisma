@@ -73,6 +73,7 @@ model Societe {
   telephone      String?
   email          String?
   logo           String? // data URI ou URL de stockage
+  cachet         String? // data URI du cachet/tampon d'entreprise, affiché à la demande sur les documents imprimés
 
   // Identifiants légaux marocains
   ice               String?

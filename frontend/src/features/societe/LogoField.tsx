@@ -6,6 +6,7 @@ interface LogoFieldProps {
   value: string;
   onChange: (dataUri: string) => void;
   editable: boolean;
+  label?: string;
 }
 
 function readAsDataUri(file: File): Promise<string> {
@@ -17,7 +18,7 @@ function readAsDataUri(file: File): Promise<string> {
   });
 }
 
-export function LogoField({ value, onChange, editable }: LogoFieldProps) {
+export function LogoField({ value, onChange, editable, label = 'Logo' }: LogoFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -30,11 +31,11 @@ export function LogoField({ value, onChange, editable }: LogoFieldProps) {
 
   return (
     <div className="space-y-1.5">
-      <Label>Logo</Label>
+      <Label>{label}</Label>
       <div className="flex items-center gap-4">
         <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted">
           {value ? (
-            <img src={value} alt="Logo de la société" className="h-full w-full object-contain" />
+            <img src={value} alt={label} className="h-full w-full object-contain" />
           ) : (
             <span className="text-xs text-muted-foreground">Aucun</span>
           )}

@@ -9,13 +9,17 @@ import ChantierDetailPage from '@/features/chantiers/ChantierDetailPage';
 import OuvragesPage from '@/features/ouvrages/OuvragesPage';
 import DevisPage from '@/features/devis/DevisPage';
 import DevisDetailPage from '@/features/devis/DevisDetailPage';
+import DevisPrintPage from '@/features/devis/DevisPrintPage';
 import CommandesPage from '@/features/commandes/CommandesPage';
 import CommandeDetailPage from '@/features/commandes/CommandeDetailPage';
+import CommandePrintPage from '@/features/commandes/CommandePrintPage';
 import FacturesPage from '@/features/factures/FacturesPage';
 import FactureDetailPage from '@/features/factures/FactureDetailPage';
+import FacturePrintPage from '@/features/factures/FacturePrintPage';
 import ArticlesPage from '@/features/articles/ArticlesPage';
 import CommandesFournisseurPage from '@/features/commandes-fournisseur/CommandesFournisseurPage';
 import CommandeFournisseurDetailPage from '@/features/commandes-fournisseur/CommandeFournisseurDetailPage';
+import CommandeFournisseurPrintPage from '@/features/commandes-fournisseur/CommandeFournisseurPrintPage';
 import StockPage from '@/features/stock/StockPage';
 import RHPage from '@/features/rh/RHPage';
 import FinancesPage from '@/features/finances/FinancesPage';
@@ -38,13 +42,17 @@ export default function App() {
         <Route path="/ouvrages" element={<OuvragesPage />} />
         <Route path="/devis" element={<DevisPage />} />
         <Route path="/devis/:id" element={<DevisDetailPage />} />
+        <Route path="/devis/:id/imprimer" element={<DevisPrintPage />} />
         <Route path="/commandes" element={<CommandesPage />} />
         <Route path="/commandes/:id" element={<CommandeDetailPage />} />
+        <Route path="/commandes/:id/imprimer" element={<CommandePrintPage />} />
         <Route path="/factures" element={<FacturesPage />} />
         <Route path="/factures/:id" element={<FactureDetailPage />} />
+        <Route path="/factures/:id/imprimer" element={<FacturePrintPage />} />
         <Route path="/articles" element={<ArticlesPage />} />
         <Route path="/commandes-fournisseur" element={<CommandesFournisseurPage />} />
         <Route path="/commandes-fournisseur/:id" element={<CommandeFournisseurDetailPage />} />
+        <Route path="/commandes-fournisseur/:id/imprimer" element={<CommandeFournisseurPrintPage />} />
         <Route path="/stock" element={<StockPage />} />
         <Route path="/rh" element={<RHPage />} />
         <Route path="/finances" element={<FinancesPage />} />

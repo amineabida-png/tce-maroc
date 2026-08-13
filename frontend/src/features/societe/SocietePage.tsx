@@ -21,6 +21,7 @@ const EMPTY: api.SocieteFormValues = {
   telephone: '',
   email: '',
   logo: '',
+  cachet: '',
   ice: '',
   rc: '',
   identifiantFiscal: '',
@@ -41,6 +42,7 @@ function toFormValues(s: Societe): api.SocieteFormValues {
     telephone: s.telephone ?? '',
     email: s.email ?? '',
     logo: s.logo ?? '',
+    cachet: s.cachet ?? '',
     ice: s.ice ?? '',
     rc: s.rc ?? '',
     identifiantFiscal: s.identifiantFiscal ?? '',
@@ -152,6 +154,24 @@ export default function SocietePage() {
                 />
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Cachet d'entreprise</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Affiché uniquement à la demande sur les documents imprimés (devis, factures, bons de commande) — jamais par
+              défaut.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <LogoField
+              label="Cachet / tampon"
+              value={values.cachet}
+              onChange={(cachet) => set('cachet', cachet)}
+              editable={editable}
+            />
           </CardContent>
         </Card>
 

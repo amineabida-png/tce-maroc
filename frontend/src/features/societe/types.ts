@@ -16,6 +16,7 @@ export interface Societe {
   telephone: string | null;
   email: string | null;
   logo: string | null;
+  cachet: string | null;
   ice: string | null;
   rc: string | null;
   identifiantFiscal: string | null;

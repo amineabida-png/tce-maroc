@@ -9,6 +9,7 @@ export interface SocieteFormValues {
   telephone: string;
   email: string;
   logo: string;
+  cachet: string;
   ice: string;
   rc: string;
   identifiantFiscal: string;

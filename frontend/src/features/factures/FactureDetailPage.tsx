@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Printer, Trash2 } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -140,6 +140,10 @@ export default function FactureDetailPage() {
         </div>
         {facture && (
           <div className="flex flex-wrap gap-2">
+            <Link to={`/factures/${facture.id}/imprimer`} className={buttonVariants({ variant: 'outline', className: 'gap-2' })}>
+              <Printer className="h-4 w-4" />
+              Imprimer
+            </Link>
             {facture.statut === 'BROUILLON' && (
               <>
                 <Button variant="outline" onClick={() => envoyerMutation.mutate()}>

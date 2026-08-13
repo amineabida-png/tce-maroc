@@ -66,3 +66,31 @@
       sans-serif;
   }
 }
+
+/* Impression : uniquement la feuille A4 du document (.print-sheet), tout le
+   reste de l'app (barre latérale, contrôles, mise en page écran) est masqué. */
+@page {
+  size: A4;
+  margin: 0;
+}
+@media print {
+  html,
+  body {
+    background: #fff !important;
+  }
+  aside,
+  .no-print {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+  .print-sheet {
+    box-shadow: none !important;
+    margin: 0 !important;
+    width: 210mm !important;
+    min-height: 0 !important;
+  }
+}

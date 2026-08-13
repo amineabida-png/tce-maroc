@@ -8,6 +8,7 @@ export const updateSocieteSchema = z.object({
   telephone: z.string().max(30).nullish(),
   email: z.string().email().nullish().or(z.literal('')),
   logo: z.string().nullish(),
+  cachet: z.string().nullish(),
 
   ice: z.string().max(30).nullish(),
   rc: z.string().max(30).nullish(),
