@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { DocumentPrintPage } from '@/components/print/DocumentPrintPage';
 import { formatDate } from '@/lib/date';
 import { formatMAD } from '@/lib/currency';
+import { montantEnLettres } from '@/lib/numberToWords';
 import * as api from './api';
 
 export default function DevisPrintPage() {
@@ -88,6 +89,10 @@ export default function DevisPrintPage() {
           </div>
         </div>
       </div>
+
+      <p className="mt-3 text-right text-xs italic text-black/70">
+        Arrêté le présent devis à la somme de : {montantEnLettres(devis.totaux.montantNetAPayer)}.
+      </p>
 
       {devis.conditions && (
         <div className="mt-8 text-sm">
