@@ -41,20 +41,20 @@ export default function BonLivraisonPrintPage() {
             <thead>
               <tr className="border-b-2 border-[#1a2330] text-left text-[8px] uppercase text-[#45505c]">
                 <th className="py-1">Désignation</th>
-                <th className="py-1 text-right">Unité</th>
-                <th className="py-1 text-right">Qté commandée</th>
-                <th className="py-1 text-right">Qté livrée</th>
-                <th className="py-1">Observations</th>
+                <th className="py-1 pr-3 text-right">Unité</th>
+                <th className="py-1 pr-3 text-right">Qté commandée</th>
+                <th className="py-1 pr-3 text-right">Qté livrée</th>
+                <th className="py-1 pl-3">Observations</th>
               </tr>
             </thead>
             <tbody>
               {bl.lignes.map((ligne) => (
                 <tr key={ligne.id} className="border-b border-[#eef0f3]">
                   <td className="py-1">{ligne.designation}</td>
-                  <td className="py-1 text-right">{ligne.unite}</td>
-                  <td className="py-1 text-right">{ligne.quantiteCommandee ?? '—'}</td>
-                  <td className="py-1 text-right font-bold text-[#2f6d4f]">{ligne.quantiteLivree}</td>
-                  <td className="py-1 text-[#56606c]">{ligne.observations || '—'}</td>
+                  <td className="py-1 pr-3 text-right">{ligne.unite}</td>
+                  <td className="py-1 pr-3 text-right">{ligne.quantiteCommandee ?? '—'}</td>
+                  <td className="py-1 pr-3 text-right font-bold text-[#2f6d4f]">{ligne.quantiteLivree}</td>
+                  <td className="py-1 pl-3 text-[#56606c]">{ligne.observations || '—'}</td>
                 </tr>
               ))}
             </tbody>
