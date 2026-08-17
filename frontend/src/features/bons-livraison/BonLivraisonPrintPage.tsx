@@ -16,22 +16,22 @@ export default function BonLivraisonPrintPage() {
 
   return (
     <DocumentPrintPage title="BON DE LIVRAISON" numero={bl.numero} date={formatDate(bl.date)}>
-      {() => (
+      {({ primary, accent }) => (
         <>
           {bl.commande && (
-            <div className="mb-3 rounded-md bg-[#eef3f0] px-3 py-1.5 text-[9px] text-[#2f6d4f]">
+            <div className="mb-3 rounded-md bg-[#f5f6f8] px-3 py-1.5 text-[9px]" style={{ color: primary }}>
               Établi à partir du bon de commande <b>{bl.commande.numero}</b>.
             </div>
           )}
 
           <div className="mb-4 grid grid-cols-2 gap-3 text-[10.5px]">
             <div className="rounded-md bg-[#f5f6f8] p-2.5">
-              <p className="text-[7.8px] font-bold uppercase tracking-wide text-[#2f6d4f]">Livré à</p>
+              <p className="text-[7.8px] font-bold uppercase tracking-wide" style={{ color: accent }}>Livré à</p>
               <p className="font-semibold text-[#1a2330]">{bl.client.nom}</p>
               {bl.client.adresse && <p className="text-[#56606c]">{bl.client.adresse}</p>}
             </div>
             <div className="rounded-md bg-[#f5f6f8] p-2.5">
-              <p className="text-[7.8px] font-bold uppercase tracking-wide text-[#2f6d4f]">Lieu de livraison</p>
+              <p className="text-[7.8px] font-bold uppercase tracking-wide" style={{ color: accent }}>Lieu de livraison</p>
               <p className="font-semibold text-[#1a2330]">{bl.lieuLivraison || bl.chantier?.nom || '—'}</p>
               {bl.chantier && bl.lieuLivraison && <p className="text-[#56606c]">Chantier {bl.chantier.nom}</p>}
             </div>
@@ -53,7 +53,7 @@ export default function BonLivraisonPrintPage() {
                   <td className="py-1">{ligne.designation}</td>
                   <td className="py-1 pr-3 text-right">{ligne.unite}</td>
                   <td className="py-1 pr-3 text-right">{ligne.quantiteCommandee ?? '—'}</td>
-                  <td className="py-1 pr-3 text-right font-bold text-[#2f6d4f]">{ligne.quantiteLivree}</td>
+                  <td className="py-1 pr-3 text-right font-bold" style={{ color: primary }}>{ligne.quantiteLivree}</td>
                   <td className="py-1 pl-3 text-[#56606c]">{ligne.observations || '—'}</td>
                 </tr>
               ))}
