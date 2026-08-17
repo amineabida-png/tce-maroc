@@ -15,6 +15,13 @@ interface NumerotationsSectionProps {
 
 const CURRENT_YEAR = new Date().getFullYear();
 
+// Erreur de saisie fréquente : taper l'année dans le préfixe en pensant
+// configurer la numérotation par-là. Un vrai préfixe contient toujours au
+// moins une lettre (DEV, BC, FACT...).
+function prefixeValide(v: string | undefined): boolean {
+  return Boolean(v && /[A-Za-zÀ-ÿ]/.test(v));
+}
+
 export function NumerotationsSection({ numerotations, editable }: NumerotationsSectionProps) {
   const queryClient = useQueryClient();
   const [prefixes, setPrefixes] = useState<Record<string, string>>({});
@@ -53,9 +60,9 @@ export function NumerotationsSection({ numerotations, editable }: NumerotationsS
       <CardHeader>
         <CardTitle className="text-base">Numérotation des documents</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Préfixe et prochain numéro à émettre pour chaque type de document — remis à zéro chaque année (ex.{' '}
-          <span className="font-mono">DEV-2026-0001</span>). Modifiez le prochain numéro pour reprendre une
-          numérotation existante (ex. après une migration depuis un autre logiciel).
+          Le <b>préfixe</b> est la partie en lettres (DEV, BC, FACT…) — l'année s'ajoute automatiquement, inutile de
+          la saisir. Pour reprendre une numérotation existante (ex. après une migration), changez plutôt le{' '}
+          <b>prochain numéro</b>. Exemple final : <span className="font-mono">DEV-2026-0001</span>.
         </p>
       </CardHeader>
       <CardContent>
@@ -69,53 +76,64 @@ export function NumerotationsSection({ numerotations, editable }: NumerotationsS
             </TableRow>
           </TableHeader>
           <TableBody>
-            {TYPES_DOCUMENT_NUMEROTES.map((type) => (
-              <TableRow key={type}>
-                <TableCell className="font-medium">{TYPE_DOCUMENT_LABELS[type]}</TableCell>
-                <TableCell>
-                  <Input
-                    className="w-28 font-mono uppercase"
-                    maxLength={10}
-                    value={prefixes[type] ?? ''}
-                    disabled={!editable}
-                    onChange={(e) => {
-                      setPrefixes((prev) => ({ ...prev, [type]: e.target.value.toUpperCase() }));
-                      setSavedTypes((prev) => ({ ...prev, [type]: false }));
-                    }}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Input
-                    className="w-24 font-mono"
-                    type="number"
-                    min={1}
-                    step={1}
-                    value={numeros[type] ?? ''}
-                    disabled={!editable}
-                    onChange={(e) => {
-                      setNumeros((prev) => ({ ...prev, [type]: e.target.value }));
-                      setSavedTypes((prev) => ({ ...prev, [type]: false }));
-                    }}
-                  />
-                </TableCell>
-                {editable && (
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {errors[type] && <span className="text-xs text-destructive">{errors[type]}</span>}
-                      {savedTypes[type] && <Check className="h-4 w-4 text-green-600" />}
-                      <button
-                        type="button"
-                        className="rounded-md border px-2.5 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
-                        disabled={saveMutation.isPending || !prefixes[type] || !numeros[type] || Number(numeros[type]) < 1}
-                        onClick={() => saveMutation.mutate(type)}
-                      >
-                        Enregistrer
-                      </button>
-                    </div>
+            {TYPES_DOCUMENT_NUMEROTES.map((type) => {
+              const prefixeInvalide = editable && prefixes[type] !== undefined && !prefixeValide(prefixes[type]);
+              return (
+                <TableRow key={type}>
+                  <TableCell className="font-medium">{TYPE_DOCUMENT_LABELS[type]}</TableCell>
+                  <TableCell>
+                    <Input
+                      className="w-28 font-mono uppercase"
+                      maxLength={10}
+                      value={prefixes[type] ?? ''}
+                      disabled={!editable}
+                      onChange={(e) => {
+                        setPrefixes((prev) => ({ ...prev, [type]: e.target.value.toUpperCase() }));
+                        setSavedTypes((prev) => ({ ...prev, [type]: false }));
+                      }}
+                    />
+                    {prefixeInvalide && (
+                      <p className="mt-1 text-xs text-destructive">Doit contenir au moins une lettre — pas juste l'année.</p>
+                    )}
                   </TableCell>
-                )}
-              </TableRow>
-            ))}
+                  <TableCell>
+                    <Input
+                      className="w-24 font-mono"
+                      type="number"
+                      min={1}
+                      step={1}
+                      value={numeros[type] ?? ''}
+                      disabled={!editable}
+                      onChange={(e) => {
+                        setNumeros((prev) => ({ ...prev, [type]: e.target.value }));
+                        setSavedTypes((prev) => ({ ...prev, [type]: false }));
+                      }}
+                    />
+                  </TableCell>
+                  {editable && (
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {errors[type] && <span className="text-xs text-destructive">{errors[type]}</span>}
+                        {savedTypes[type] && <Check className="h-4 w-4 text-green-600" />}
+                        <button
+                          type="button"
+                          className="rounded-md border px-2.5 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
+                          disabled={
+                            saveMutation.isPending ||
+                            !prefixeValide(prefixes[type]) ||
+                            !numeros[type] ||
+                            Number(numeros[type]) < 1
+                          }
+                          onClick={() => saveMutation.mutate(type)}
+                        >
+                          Enregistrer
+                        </button>
+                      </div>
+                    </TableCell>
+                  )}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </CardContent>

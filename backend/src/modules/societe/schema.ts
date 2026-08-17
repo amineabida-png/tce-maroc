@@ -25,7 +25,15 @@ export type UpdateSocieteInput = z.infer<typeof updateSocieteSchema>;
 
 export const upsertNumerotationSchema = z.object({
   typeDocument: z.string().min(1).max(40),
-  prefixe: z.string().min(1).max(10),
+  // Rejette un préfixe purement numérique (ex. "2026") : erreur de saisie
+  // fréquente en confondant ce champ avec l'année ou le numéro de départ,
+  // qui se règlent ailleurs (l'année est automatique, le numéro de départ
+  // via prochainNumero ci-dessous).
+  prefixe: z
+    .string()
+    .min(1)
+    .max(10)
+    .refine((v) => /[A-Za-zÀ-ÿ]/.test(v), 'Le préfixe doit contenir au moins une lettre (ex. DEV, BC, FACT).'),
   resetAnnuel: z.boolean().optional(),
   // Prochain numéro à émettre (pas le dernier utilisé) — plus intuitif côté
   // formulaire ; converti en dernierNumero (valeur - 1) côté service.
