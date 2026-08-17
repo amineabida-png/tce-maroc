@@ -37,9 +37,9 @@ export function updateSociete(values: SocieteFormValues) {
   });
 }
 
-export function upsertNumerotation(typeDocument: string, prefixe: string, resetAnnuel: boolean) {
+export function upsertNumerotation(typeDocument: string, prefixe: string, resetAnnuel: boolean, prochainNumero?: number) {
   return apiFetch<Numerotation>('/api/societe/numerotations', {
     method: 'PUT',
-    body: JSON.stringify({ typeDocument, prefixe, resetAnnuel }),
+    body: JSON.stringify({ typeDocument, prefixe, resetAnnuel, prochainNumero }),
   });
 }

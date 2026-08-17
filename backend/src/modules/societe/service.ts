@@ -18,16 +18,27 @@ export async function updateSociete(data: UpdateSocieteInput) {
 export async function upsertNumerotation(input: UpsertNumerotationInput) {
   const societe = await getSociete();
   const currentYear = new Date().getFullYear();
+  // "Prochain numéro" saisi par l'utilisateur = le prochain à émettre ; le
+  // compteur interne stocke le DERNIER émis (nextNumero() l'incrémente
+  // avant de s'en servir), d'où le -1. On repositionne aussi l'année
+  // courante pour que ce numéro s'applique bien à la séquence de cette
+  // année plutôt que d'être écrasé par la remise à zéro annuelle.
+  const dernierNumero = input.prochainNumero !== undefined ? input.prochainNumero - 1 : undefined;
+
   return prisma.numerotation.upsert({
     where: { societeId_typeDocument: { societeId: societe.id, typeDocument: input.typeDocument } },
-    update: { prefixe: input.prefixe, resetAnnuel: input.resetAnnuel ?? true },
+    update: {
+      prefixe: input.prefixe,
+      resetAnnuel: input.resetAnnuel ?? true,
+      ...(dernierNumero !== undefined ? { dernierNumero, anneeCourante: currentYear } : {}),
+    },
     create: {
       societeId: societe.id,
       typeDocument: input.typeDocument,
       prefixe: input.prefixe,
       resetAnnuel: input.resetAnnuel ?? true,
       anneeCourante: currentYear,
-      dernierNumero: 0,
+      dernierNumero: dernierNumero ?? 0,
     },
   });
 }

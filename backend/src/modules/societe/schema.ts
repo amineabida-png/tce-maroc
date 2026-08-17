@@ -27,5 +27,8 @@ export const upsertNumerotationSchema = z.object({
   typeDocument: z.string().min(1).max(40),
   prefixe: z.string().min(1).max(10),
   resetAnnuel: z.boolean().optional(),
+  // Prochain numéro à émettre (pas le dernier utilisé) — plus intuitif côté
+  // formulaire ; converti en dernierNumero (valeur - 1) côté service.
+  prochainNumero: z.number().int().min(1).optional(),
 });
 export type UpsertNumerotationInput = z.infer<typeof upsertNumerotationSchema>;
