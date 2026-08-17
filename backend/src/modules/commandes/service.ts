@@ -3,6 +3,7 @@ import { prisma } from '../../db/client';
 import { AppError } from '../../middleware/errorHandler';
 import { computeTotaux } from '../../lib/money';
 import { nextNumero } from '../../lib/numerotation';
+import { isRoleManager } from '../../lib/roles';
 import { type PaginationParams, toPaginatedResult } from '../../lib/pagination';
 import { getSociete } from '../societe/service';
 import type { CommandeContentInput } from './schema';
@@ -100,10 +101,10 @@ export async function createCommande(data: CommandeContentInput) {
   return getCommande(commandeId);
 }
 
-export async function updateCommande(id: string, data: CommandeContentInput) {
+export async function updateCommande(id: string, data: CommandeContentInput, role?: string) {
   const existing = await prisma.commande.findUnique({ where: { id } });
   if (!existing) throw new AppError(404, 'Commande introuvable.');
-  if (!STATUTS_MODIFIABLES.includes(existing.statut)) {
+  if (!STATUTS_MODIFIABLES.includes(existing.statut) && !isRoleManager(role)) {
     throw new AppError(409, 'Cette commande ne peut plus être modifiée (déjà confirmée, facturée ou annulée).');
   }
 
@@ -126,10 +127,12 @@ export async function updateCommande(id: string, data: CommandeContentInput) {
   return getCommande(id);
 }
 
-export async function deleteCommande(id: string): Promise<void> {
+export async function deleteCommande(id: string, role?: string): Promise<void> {
   const commande = await prisma.commande.findUnique({ where: { id } });
   if (!commande) throw new AppError(404, 'Commande introuvable.');
-  if (commande.statut !== 'BROUILLON') throw new AppError(409, 'Seule une commande en brouillon peut être supprimée.');
+  if (commande.statut !== 'BROUILLON' && !isRoleManager(role)) {
+    throw new AppError(409, 'Seule une commande en brouillon peut être supprimée.');
+  }
   await prisma.commande.delete({ where: { id } });
 }
 

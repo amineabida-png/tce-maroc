@@ -11,6 +11,8 @@ import { SelectNative } from '@/components/ui/select-native';
 import { ApiError, apiFetch } from '@/lib/api';
 import { formatMAD } from '@/lib/currency';
 import { computeTotaux } from '@/lib/money';
+import { isRoleManager } from '@/lib/roles';
+import { useAuthStore } from '@/store/auth';
 import * as api from './api';
 import type { CommandeContent, LigneContent } from './api';
 import { STATUT_COMMANDE_LABELS, STATUT_COMMANDE_VARIANT, STATUTS_MODIFIABLES, type StatutCommande } from './types';
@@ -55,7 +57,9 @@ export default function CommandeDetailPage() {
     queryFn: () => apiFetch<{ items: Option[] }>('/api/chantiers?pageSize=100'),
   });
 
-  const modifiable = isNew || (commande ? STATUTS_MODIFIABLES.includes(commande.statut) : false);
+  const role = useAuthStore((s) => s.user?.role);
+  const manager = isRoleManager(role);
+  const modifiable = isNew || (commande ? STATUTS_MODIFIABLES.includes(commande.statut) || manager : false);
 
   const saveMutation = useMutation({
     mutationFn: () => (isNew ? api.createCommande(content) : api.updateCommande(id as string, content)),
@@ -122,21 +126,9 @@ export default function CommandeDetailPage() {
               Imprimer
             </Link>
             {commande.statut === 'BROUILLON' && (
-              <>
-                <Button variant="outline" onClick={() => statutMutation.mutate('CONFIRMEE')}>
-                  Confirmer
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="gap-2 text-destructive hover:text-destructive"
-                  onClick={() => {
-                    if (confirm('Supprimer cette commande brouillon ?')) deleteMutation.mutate();
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Supprimer
-                </Button>
-              </>
+              <Button variant="outline" onClick={() => statutMutation.mutate('CONFIRMEE')}>
+                Confirmer
+              </Button>
             )}
             {commande.statut === 'CONFIRMEE' && (
               <>
@@ -147,6 +139,18 @@ export default function CommandeDetailPage() {
                   Annuler
                 </Button>
               </>
+            )}
+            {(commande.statut === 'BROUILLON' || manager) && (
+              <Button
+                variant="ghost"
+                className="gap-2 text-destructive hover:text-destructive"
+                onClick={() => {
+                  if (confirm('Supprimer cette commande ?')) deleteMutation.mutate();
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+                Supprimer
+              </Button>
             )}
           </div>
         )}

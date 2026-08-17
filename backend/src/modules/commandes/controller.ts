@@ -26,13 +26,13 @@ export async function createCommandeHandler(req: Request, res: Response): Promis
 
 export async function updateCommandeHandler(req: Request, res: Response): Promise<void> {
   const data = commandeContentSchema.parse(req.body);
-  const commande = await commandesService.updateCommande(req.params.id as string, data);
+  const commande = await commandesService.updateCommande(req.params.id as string, data, req.user?.role);
   await logAudit({ utilisateurId: req.user?.id, action: 'UPDATE_COMMANDE', entite: 'Commande', entiteId: commande.id });
   res.json(commande);
 }
 
 export async function deleteCommandeHandler(req: Request, res: Response): Promise<void> {
-  await commandesService.deleteCommande(req.params.id as string);
+  await commandesService.deleteCommande(req.params.id as string, req.user?.role);
   await logAudit({ utilisateurId: req.user?.id, action: 'DELETE_COMMANDE', entite: 'Commande', entiteId: req.params.id });
   res.status(204).end();
 }

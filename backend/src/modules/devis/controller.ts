@@ -30,13 +30,13 @@ export async function createDevisHandler(req: Request, res: Response): Promise<v
 
 export async function updateDevisHandler(req: Request, res: Response): Promise<void> {
   const data = devisContentSchema.parse(req.body);
-  const devis = await devisService.updateDevis(req.params.id as string, data);
+  const devis = await devisService.updateDevis(req.params.id as string, data, req.user?.role);
   await logAudit({ utilisateurId: req.user?.id, action: 'UPDATE_DEVIS', entite: 'Devis', entiteId: devis.id });
   res.json(devis);
 }
 
 export async function deleteDevisHandler(req: Request, res: Response): Promise<void> {
-  await devisService.deleteDevis(req.params.id as string);
+  await devisService.deleteDevis(req.params.id as string, req.user?.role);
   await logAudit({ utilisateurId: req.user?.id, action: 'DELETE_DEVIS', entite: 'Devis', entiteId: req.params.id });
   res.status(204).end();
 }

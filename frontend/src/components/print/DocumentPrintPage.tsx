@@ -94,8 +94,8 @@ export function DocumentPrintPage({ title, numero, date, children }: DocumentPri
         </Button>
       </div>
 
-      <div className="flex justify-center bg-muted/30 p-6 print:bg-transparent print:p-0">
-        <div className="print-sheet relative flex min-h-[297mm] w-[210mm] flex-col bg-white text-black shadow-lg">
+      <div className="overflow-x-auto bg-muted/30 p-6 print:overflow-visible print:bg-transparent print:p-0">
+        <div className="print-sheet relative mx-auto flex min-h-[297mm] w-[210mm] max-w-none shrink-0 flex-col bg-white text-black shadow-lg">
           {showEntete ? (
             <>
               <div className="h-[6px] bg-gradient-to-r from-[#1b3a66] to-[#c2691f]" />

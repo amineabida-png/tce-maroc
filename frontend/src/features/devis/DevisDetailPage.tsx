@@ -12,6 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { ApiError, apiFetch } from '@/lib/api';
 import { formatMAD } from '@/lib/currency';
 import { computeTotaux } from '@/lib/money';
+import { isRoleManager } from '@/lib/roles';
+import { useAuthStore } from '@/store/auth';
 import * as api from './api';
 import type { DevisContent, LigneContent, LotContent } from './api';
 import { STATUT_DEVIS_LABELS, STATUT_DEVIS_VARIANT, STATUTS_MODIFIABLES, type StatutDevis } from './types';
@@ -78,7 +80,9 @@ export default function DevisDetailPage() {
     queryFn: () => apiFetch<{ items: Option[] }>('/api/chantiers?pageSize=100'),
   });
 
-  const modifiable = isNew || (devis ? STATUTS_MODIFIABLES.includes(devis.statut) : false);
+  const role = useAuthStore((s) => s.user?.role);
+  const manager = isRoleManager(role);
+  const modifiable = isNew || (devis ? STATUTS_MODIFIABLES.includes(devis.statut) || manager : false);
 
   const saveMutation = useMutation({
     mutationFn: () => (isNew ? api.createDevis(content) : api.updateDevis(id as string, content)),
@@ -193,12 +197,12 @@ export default function DevisDetailPage() {
                 Convertir en bon de commande
               </Button>
             )}
-            {devis.statut === 'BROUILLON' && (
+            {(devis.statut === 'BROUILLON' || manager) && (
               <Button
                 variant="ghost"
                 className="gap-2 text-destructive hover:text-destructive"
                 onClick={() => {
-                  if (confirm('Supprimer ce devis brouillon ?')) deleteMutation.mutate();
+                  if (confirm('Supprimer ce devis ?')) deleteMutation.mutate();
                 }}
               >
                 <Trash2 className="h-4 w-4" />

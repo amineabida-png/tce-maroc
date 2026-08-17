@@ -26,13 +26,13 @@ export async function createFactureHandler(req: Request, res: Response): Promise
 
 export async function updateFactureHandler(req: Request, res: Response): Promise<void> {
   const data = factureContentSchema.parse(req.body);
-  const facture = await facturesService.updateFacture(req.params.id as string, data);
+  const facture = await facturesService.updateFacture(req.params.id as string, data, req.user?.role);
   await logAudit({ utilisateurId: req.user?.id, action: 'UPDATE_FACTURE', entite: 'Facture', entiteId: facture.id });
   res.json(facture);
 }
 
 export async function deleteFactureHandler(req: Request, res: Response): Promise<void> {
-  await facturesService.deleteFacture(req.params.id as string);
+  await facturesService.deleteFacture(req.params.id as string, req.user?.role);
   await logAudit({ utilisateurId: req.user?.id, action: 'DELETE_FACTURE', entite: 'Facture', entiteId: req.params.id });
   res.status(204).end();
 }

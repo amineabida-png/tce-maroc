@@ -3,6 +3,7 @@ import { prisma } from '../../db/client';
 import { AppError } from '../../middleware/errorHandler';
 import { computeTotaux } from '../../lib/money';
 import { nextNumero } from '../../lib/numerotation';
+import { isRoleManager } from '../../lib/roles';
 import { type PaginationParams, toPaginatedResult } from '../../lib/pagination';
 import { getSociete } from '../societe/service';
 import type { CommandeFournisseurContentInput, ReceptionInput } from './schema';
@@ -129,11 +130,24 @@ export async function createCommandeFournisseur(data: CommandeFournisseurContent
   return getCommandeFournisseur(id);
 }
 
-export async function updateCommandeFournisseur(id: string, data: CommandeFournisseurContentInput) {
+async function fetchQuantiteRecueTotale(id: string): Promise<number> {
+  const lignes = await prisma.ligneCommandeFournisseur.findMany({ where: { commandeFournisseurId: id }, select: { quantiteRecue: true } });
+  return lignes.reduce((sum, l) => sum + Number(l.quantiteRecue), 0);
+}
+
+export async function updateCommandeFournisseur(id: string, data: CommandeFournisseurContentInput, role?: string) {
   const existing = await prisma.commandeFournisseur.findUnique({ where: { id } });
   if (!existing) throw new AppError(404, 'Commande fournisseur introuvable.');
   if (!STATUTS_MODIFIABLES.includes(existing.statut)) {
-    throw new AppError(409, 'Cette commande ne peut plus être modifiée (déjà envoyée, reçue ou annulée).');
+    if (!isRoleManager(role)) {
+      throw new AppError(409, 'Cette commande ne peut plus être modifiée (déjà envoyée, reçue ou annulée).');
+    }
+    // Remplacer les lignes d'une commande déjà (partiellement) réceptionnée
+    // effacerait la trace de ce qui a physiquement été reçu en stock —
+    // même un admin doit passer par une nouvelle commande dans ce cas.
+    if ((await fetchQuantiteRecueTotale(id)) > 0) {
+      throw new AppError(409, 'Cette commande a déjà des quantités réceptionnées — elle ne peut plus être modifiée.');
+    }
   }
 
   await prisma.$transaction(async (tx) => {
@@ -165,10 +179,17 @@ export async function updateCommandeFournisseur(id: string, data: CommandeFourni
   return getCommandeFournisseur(id);
 }
 
-export async function deleteCommandeFournisseur(id: string): Promise<void> {
+export async function deleteCommandeFournisseur(id: string, role?: string): Promise<void> {
   const cf = await prisma.commandeFournisseur.findUnique({ where: { id } });
   if (!cf) throw new AppError(404, 'Commande fournisseur introuvable.');
-  if (cf.statut !== 'BROUILLON') throw new AppError(409, 'Seule une commande en brouillon peut être supprimée.');
+  if (cf.statut !== 'BROUILLON') {
+    if (!isRoleManager(role)) {
+      throw new AppError(409, 'Seule une commande en brouillon peut être supprimée.');
+    }
+    if ((await fetchQuantiteRecueTotale(id)) > 0) {
+      throw new AppError(409, 'Cette commande a déjà des quantités réceptionnées — elle ne peut plus être supprimée.');
+    }
+  }
   await prisma.commandeFournisseur.delete({ where: { id } });
 }
 

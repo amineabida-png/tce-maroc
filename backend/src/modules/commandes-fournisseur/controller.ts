@@ -29,13 +29,13 @@ export async function createHandler(req: Request, res: Response): Promise<void> 
 
 export async function updateHandler(req: Request, res: Response): Promise<void> {
   const data = commandeFournisseurContentSchema.parse(req.body);
-  const cf = await service.updateCommandeFournisseur(req.params.id as string, data);
+  const cf = await service.updateCommandeFournisseur(req.params.id as string, data, req.user?.role);
   await logAudit({ utilisateurId: req.user?.id, action: 'UPDATE_COMMANDE_FOURNISSEUR', entite: 'CommandeFournisseur', entiteId: cf.id });
   res.json(cf);
 }
 
 export async function deleteHandler(req: Request, res: Response): Promise<void> {
-  await service.deleteCommandeFournisseur(req.params.id as string);
+  await service.deleteCommandeFournisseur(req.params.id as string, req.user?.role);
   await logAudit({ utilisateurId: req.user?.id, action: 'DELETE_COMMANDE_FOURNISSEUR', entite: 'CommandeFournisseur', entiteId: req.params.id });
   res.status(204).end();
 }

@@ -11,6 +11,8 @@ import { SelectNative } from '@/components/ui/select-native';
 import { ApiError, apiFetch } from '@/lib/api';
 import { formatMAD } from '@/lib/currency';
 import { computeTotaux } from '@/lib/money';
+import { isRoleManager } from '@/lib/roles';
+import { useAuthStore } from '@/store/auth';
 import * as api from './api';
 import type { CommandeFournisseurContent, LigneContent } from './api';
 import { ReceptionDialog } from './ReceptionDialog';
@@ -74,7 +76,10 @@ export default function CommandeFournisseurDetailPage() {
     queryFn: () => apiFetch<{ items: ArticleOption[] }>('/api/articles?pageSize=200'),
   });
 
-  const modifiable = isNew || (cf ? STATUTS_MODIFIABLES.includes(cf.statut) : false);
+  const role = useAuthStore((s) => s.user?.role);
+  const manager = isRoleManager(role);
+  const aRecu = cf ? cf.lignes.some((l) => Number(l.quantiteRecue) > 0) : false;
+  const modifiable = isNew || (cf ? STATUTS_MODIFIABLES.includes(cf.statut) || (manager && !aRecu) : false);
   const receptionnable = cf ? STATUTS_RECEPTIONNABLES.includes(cf.statut) : false;
 
   const invalidate = () => {
@@ -153,21 +158,21 @@ export default function CommandeFournisseurDetailPage() {
               Imprimer
             </Link>
             {cf.statut === 'BROUILLON' && (
-              <>
-                <Button variant="outline" onClick={() => statutMutation.mutate('ENVOYEE')}>
-                  Marquer envoyée
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="gap-2 text-destructive hover:text-destructive"
-                  onClick={() => {
-                    if (confirm('Supprimer cette commande brouillon ?')) deleteMutation.mutate();
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Supprimer
-                </Button>
-              </>
+              <Button variant="outline" onClick={() => statutMutation.mutate('ENVOYEE')}>
+                Marquer envoyée
+              </Button>
+            )}
+            {(cf.statut === 'BROUILLON' || (manager && !aRecu)) && (
+              <Button
+                variant="ghost"
+                className="gap-2 text-destructive hover:text-destructive"
+                onClick={() => {
+                  if (confirm('Supprimer cette commande ?')) deleteMutation.mutate();
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+                Supprimer
+              </Button>
             )}
             {receptionnable && (
               <Button

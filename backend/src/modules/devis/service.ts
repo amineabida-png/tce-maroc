@@ -3,6 +3,7 @@ import { prisma } from '../../db/client';
 import { AppError } from '../../middleware/errorHandler';
 import { computeTotaux } from '../../lib/money';
 import { nextNumero } from '../../lib/numerotation';
+import { isRoleManager } from '../../lib/roles';
 import { type PaginationParams, toPaginatedResult } from '../../lib/pagination';
 import { getSociete } from '../societe/service';
 import type { DevisContentInput } from './schema';
@@ -130,10 +131,10 @@ export async function createDevis(data: DevisContentInput) {
   return getDevis(devisId);
 }
 
-export async function updateDevis(id: string, data: DevisContentInput) {
+export async function updateDevis(id: string, data: DevisContentInput, role?: string) {
   const existing = await prisma.devis.findUnique({ where: { id } });
   if (!existing) throw new AppError(404, 'Devis introuvable.');
-  if (!STATUTS_MODIFIABLES.includes(existing.statut)) {
+  if (!STATUTS_MODIFIABLES.includes(existing.statut) && !isRoleManager(role)) {
     throw new AppError(409, 'Ce devis ne peut plus être modifié (déjà accepté, refusé ou converti).');
   }
 
@@ -156,10 +157,12 @@ export async function updateDevis(id: string, data: DevisContentInput) {
   return getDevis(id);
 }
 
-export async function deleteDevis(id: string): Promise<void> {
+export async function deleteDevis(id: string, role?: string): Promise<void> {
   const devis = await prisma.devis.findUnique({ where: { id } });
   if (!devis) throw new AppError(404, 'Devis introuvable.');
-  if (devis.statut !== 'BROUILLON') throw new AppError(409, 'Seul un devis en brouillon peut être supprimé.');
+  if (devis.statut !== 'BROUILLON' && !isRoleManager(role)) {
+    throw new AppError(409, 'Seul un devis en brouillon peut être supprimé.');
+  }
   await prisma.devis.delete({ where: { id } });
 }
 

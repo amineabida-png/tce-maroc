@@ -14,6 +14,8 @@ import { DocumentsPanel } from '@/features/documents/DocumentsPanel';
 import { formatMAD } from '@/lib/currency';
 import { formatDate } from '@/lib/date';
 import { computeTotaux } from '@/lib/money';
+import { isRoleManager } from '@/lib/roles';
+import { useAuthStore } from '@/store/auth';
 import * as api from './api';
 import type { FactureContent, LigneContent } from './api';
 import { PaiementFormDialog } from './PaiementFormDialog';
@@ -72,7 +74,9 @@ export default function FactureDetailPage() {
     queryFn: () => apiFetch<{ items: Option[] }>('/api/chantiers?pageSize=100'),
   });
 
-  const modifiable = isNew || (facture ? STATUTS_MODIFIABLES.includes(facture.statut) : false);
+  const role = useAuthStore((s) => s.user?.role);
+  const manager = isRoleManager(role);
+  const modifiable = isNew || (facture ? STATUTS_MODIFIABLES.includes(facture.statut) || (manager && facture.paiements.length === 0) : false);
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['facture', id] });
@@ -145,21 +149,21 @@ export default function FactureDetailPage() {
               Imprimer
             </Link>
             {facture.statut === 'BROUILLON' && (
-              <>
-                <Button variant="outline" onClick={() => envoyerMutation.mutate()}>
-                  Envoyer
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="gap-2 text-destructive hover:text-destructive"
-                  onClick={() => {
-                    if (confirm('Supprimer cette facture brouillon ?')) deleteMutation.mutate();
-                  }}
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Supprimer
-                </Button>
-              </>
+              <Button variant="outline" onClick={() => envoyerMutation.mutate()}>
+                Envoyer
+              </Button>
+            )}
+            {(facture.statut === 'BROUILLON' || (manager && facture.paiements.length === 0)) && (
+              <Button
+                variant="ghost"
+                className="gap-2 text-destructive hover:text-destructive"
+                onClick={() => {
+                  if (confirm('Supprimer cette facture ?')) deleteMutation.mutate();
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+                Supprimer
+              </Button>
             )}
             {['BROUILLON', 'ENVOYEE'].includes(facture.statut) && (
               <Button variant="ghost" className="text-destructive" onClick={() => annulerMutation.mutate()}>
