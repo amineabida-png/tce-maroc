@@ -135,20 +135,22 @@ async function fetchQuantiteRecueTotale(id: string): Promise<number> {
   return lignes.reduce((sum, l) => sum + Number(l.quantiteRecue), 0);
 }
 
+// Invariant indépendant du statut ou du rôle : remplacer/supprimer les
+// lignes d'une commande déjà (partiellement) réceptionnée effacerait la
+// trace de ce qui a physiquement été reçu en stock.
+async function assertSansReception(id: string): Promise<void> {
+  if ((await fetchQuantiteRecueTotale(id)) > 0) {
+    throw new AppError(409, 'Cette commande a déjà des quantités réceptionnées — elle ne peut plus être modifiée ni supprimée.');
+  }
+}
+
 export async function updateCommandeFournisseur(id: string, data: CommandeFournisseurContentInput, role?: string) {
   const existing = await prisma.commandeFournisseur.findUnique({ where: { id } });
   if (!existing) throw new AppError(404, 'Commande fournisseur introuvable.');
-  if (!STATUTS_MODIFIABLES.includes(existing.statut)) {
-    if (!isRoleManager(role)) {
-      throw new AppError(409, 'Cette commande ne peut plus être modifiée (déjà envoyée, reçue ou annulée).');
-    }
-    // Remplacer les lignes d'une commande déjà (partiellement) réceptionnée
-    // effacerait la trace de ce qui a physiquement été reçu en stock —
-    // même un admin doit passer par une nouvelle commande dans ce cas.
-    if ((await fetchQuantiteRecueTotale(id)) > 0) {
-      throw new AppError(409, 'Cette commande a déjà des quantités réceptionnées — elle ne peut plus être modifiée.');
-    }
+  if (!STATUTS_MODIFIABLES.includes(existing.statut) && !isRoleManager(role)) {
+    throw new AppError(409, 'Cette commande ne peut plus être modifiée (déjà envoyée, reçue ou annulée).');
   }
+  await assertSansReception(id);
 
   await prisma.$transaction(async (tx) => {
     await tx.ligneCommandeFournisseur.deleteMany({ where: { commandeFournisseurId: id } });
@@ -182,14 +184,10 @@ export async function updateCommandeFournisseur(id: string, data: CommandeFourni
 export async function deleteCommandeFournisseur(id: string, role?: string): Promise<void> {
   const cf = await prisma.commandeFournisseur.findUnique({ where: { id } });
   if (!cf) throw new AppError(404, 'Commande fournisseur introuvable.');
-  if (cf.statut !== 'BROUILLON') {
-    if (!isRoleManager(role)) {
-      throw new AppError(409, 'Seule une commande en brouillon peut être supprimée.');
-    }
-    if ((await fetchQuantiteRecueTotale(id)) > 0) {
-      throw new AppError(409, 'Cette commande a déjà des quantités réceptionnées — elle ne peut plus être supprimée.');
-    }
+  if (cf.statut !== 'BROUILLON' && !isRoleManager(role)) {
+    throw new AppError(409, 'Seule une commande en brouillon peut être supprimée.');
   }
+  await assertSansReception(id);
   await prisma.commandeFournisseur.delete({ where: { id } });
 }
 

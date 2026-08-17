@@ -124,23 +124,24 @@ export async function createFacture(data: FactureContentInput) {
   return getFacture(factureId);
 }
 
+async function assertSansPaiements(id: string): Promise<void> {
+  // Invariant indépendant du statut ou du rôle : un paiement peut en
+  // théorie exister sur une facture à n'importe quel statut, et le
+  // supprimer/écraser en cascade effacerait un encaissement réel. Vérifié
+  // systématiquement avant toute modification/suppression hors brouillon.
+  const nbPaiements = await prisma.paiement.count({ where: { factureId: id } });
+  if (nbPaiements > 0) {
+    throw new AppError(409, 'Cette facture a des paiements enregistrés — supprimez-les avant de modifier ou supprimer la facture.');
+  }
+}
+
 export async function updateFacture(id: string, data: FactureContentInput, role?: string) {
   const existing = await prisma.facture.findUnique({ where: { id } });
   if (!existing) throw new AppError(404, 'Facture introuvable.');
-  if (!STATUTS_MODIFIABLES.includes(existing.statut)) {
-    if (!isRoleManager(role)) {
-      throw new AppError(409, 'Cette facture ne peut plus être modifiée (déjà envoyée, payée ou annulée).');
-    }
-    // Même un admin ne modifie pas le contenu (lignes, montants) d'une
-    // facture ayant déjà des paiements enregistrés — les paiements ne se
-    // recalculent pas avec les nouvelles lignes, on figerait un montant
-    // encaissé sur des lignes qui n'existent plus. Il faut d'abord
-    // supprimer les paiements concernés.
-    const nbPaiements = await prisma.paiement.count({ where: { factureId: id } });
-    if (nbPaiements > 0) {
-      throw new AppError(409, 'Cette facture a des paiements enregistrés — supprimez-les avant de modifier son contenu.');
-    }
+  if (!STATUTS_MODIFIABLES.includes(existing.statut) && !isRoleManager(role)) {
+    throw new AppError(409, 'Cette facture ne peut plus être modifiée (déjà envoyée, payée ou annulée).');
   }
+  await assertSansPaiements(id);
 
   await prisma.$transaction(async (tx) => {
     await tx.ligneFacture.deleteMany({ where: { factureId: id } });
@@ -167,17 +168,12 @@ export async function updateFacture(id: string, data: FactureContentInput, role?
 export async function deleteFacture(id: string, role?: string): Promise<void> {
   const facture = await prisma.facture.findUnique({ where: { id } });
   if (!facture) throw new AppError(404, 'Facture introuvable.');
-  if (facture.statut !== 'BROUILLON') {
-    if (!isRoleManager(role)) {
-      throw new AppError(409, 'Seule une facture en brouillon peut être supprimée.');
-    }
-    // Supprimer la facture supprimerait ses paiements en cascade — jamais
-    // souhaitable, même pour un admin : on efface un encaissement réel.
-    const nbPaiements = await prisma.paiement.count({ where: { factureId: id } });
-    if (nbPaiements > 0) {
-      throw new AppError(409, 'Cette facture a des paiements enregistrés — supprimez-les avant de supprimer la facture.');
-    }
+  if (facture.statut !== 'BROUILLON' && !isRoleManager(role)) {
+    throw new AppError(409, 'Seule une facture en brouillon peut être supprimée.');
   }
+  // Supprimer la facture supprimerait ses paiements en cascade — jamais
+  // souhaitable, quel que soit le rôle : on efface un encaissement réel.
+  await assertSansPaiements(id);
   await prisma.facture.delete({ where: { id } });
 }
 
