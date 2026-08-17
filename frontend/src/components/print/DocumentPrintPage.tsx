@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SelectNative } from '@/components/ui/select-native';
 import * as societeApi from '@/features/societe/api';
+import { useAuthStore } from '@/store/auth';
 
 type PositionCachet = 'bas-droite' | 'bas-gauche' | 'centre';
 
@@ -14,9 +15,19 @@ const POSITION_LABELS: Record<PositionCachet, string> = {
   centre: 'Centré',
 };
 
+// Couleurs par défaut du document imprimé quand l'utilisateur n'a pas
+// personnalisé sa charte (section Apparence, Paramètres société) — sinon
+// ses couleurs choisies s'appliquent aussi sur le papier, pas seulement à
+// l'écran.
+const DEFAUT_PRIMAIRE = '#1b3a66';
+const DEFAUT_ACCENT = '#c2691f';
+
 export interface CachetRenderProps {
   /** null si le cachet est masqué ou non configuré — ne rien afficher dans ce cas. */
   element: ReactNode | null;
+  /** Couleurs de la charte de l'utilisateur (ou les couleurs par défaut du document). */
+  primary: string;
+  accent: string;
 }
 
 interface DocumentPrintPageProps {
@@ -37,6 +48,9 @@ export function DocumentPrintPage({ title, numero, date, children }: DocumentPri
   const [showCachet, setShowCachet] = useState(false);
   const [cachetTaille, setCachetTaille] = useState(90);
   const [cachetPosition, setCachetPosition] = useState<PositionCachet>('bas-droite');
+  const user = useAuthStore((s) => s.user);
+  const primary = user?.couleurPrimaire || DEFAUT_PRIMAIRE;
+  const accent = user?.couleurAccent || DEFAUT_ACCENT;
 
   const { data: societe } = useQuery({
     queryKey: ['societe'],
@@ -98,13 +112,16 @@ export function DocumentPrintPage({ title, numero, date, children }: DocumentPri
         <div className="print-sheet relative mx-auto flex min-h-[297mm] w-[210mm] max-w-none shrink-0 flex-col bg-white text-black shadow-lg">
           {showEntete ? (
             <>
-              <div className="h-[6px] bg-gradient-to-r from-[#1b3a66] to-[#c2691f]" />
+              <div className="h-[6px]" style={{ background: `linear-gradient(to right, ${primary}, ${accent})` }} />
               <div className="flex items-start justify-between px-[8%] pt-6">
                 <div className="flex items-center gap-3">
                   {societe.logo ? (
                     <img src={societe.logo} alt={societe.nom} className="h-[38px] w-[38px] object-contain" />
                   ) : (
-                    <div className="flex h-[38px] w-[38px] items-center justify-center rounded-lg bg-[#1b3a66] text-[13px] font-extrabold text-white">
+                    <div
+                      className="flex h-[38px] w-[38px] items-center justify-center rounded-lg text-[13px] font-extrabold text-white"
+                      style={{ backgroundColor: primary }}
+                    >
                       {societe.nom.slice(0, 3).toUpperCase()}
                     </div>
                   )}
@@ -118,7 +135,10 @@ export function DocumentPrintPage({ title, numero, date, children }: DocumentPri
                     <p className="text-[9px] text-[#7c8794]">{[societe.adresse, societe.ville, societe.telephone].filter(Boolean).join(' · ')}</p>
                   </div>
                 </div>
-                <div className="rounded-full bg-[#c2691f] px-4 py-2 text-right text-[13px] font-extrabold tracking-wide text-white">
+                <div
+                  className="rounded-full px-4 py-2 text-right text-[13px] font-extrabold tracking-wide text-white"
+                  style={{ backgroundColor: accent }}
+                >
                   {title}
                   <span className="block text-[10px] font-semibold opacity-90">
                     {numero} · {date}
@@ -128,7 +148,10 @@ export function DocumentPrintPage({ title, numero, date, children }: DocumentPri
             </>
           ) : (
             <div className="flex justify-end px-[8%] pt-8">
-              <div className="rounded-full bg-[#c2691f] px-4 py-2 text-right text-[13px] font-extrabold tracking-wide text-white">
+              <div
+                className="rounded-full px-4 py-2 text-right text-[13px] font-extrabold tracking-wide text-white"
+                style={{ backgroundColor: accent }}
+              >
                 {title}
                 <span className="block text-[10px] font-semibold opacity-90">
                   {numero} · {date}
@@ -136,7 +159,7 @@ export function DocumentPrintPage({ title, numero, date, children }: DocumentPri
               </div>
             </div>
           )}
-          <div className="flex flex-1 flex-col px-[8%] pb-[8%] pt-5">{children({ element: cachetElement })}</div>
+          <div className="flex flex-1 flex-col px-[8%] pb-[8%] pt-5">{children({ element: cachetElement, primary, accent })}</div>
         </div>
       </div>
     </div>

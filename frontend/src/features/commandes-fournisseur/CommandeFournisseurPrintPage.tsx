@@ -20,17 +20,17 @@ export default function CommandeFournisseurPrintPage() {
 
   return (
     <DocumentPrintPage title="BON DE COMMANDE FOURNISSEUR" numero={cf.numero} date={formatDate(cf.date)}>
-      {({ element: cachet }) => (
+      {({ element: cachet, primary, accent }) => (
         <>
           <div className="mb-4 grid grid-cols-2 gap-3 text-[10.5px]">
             <div className="rounded-md bg-[#f5f6f8] p-2.5">
-              <p className="text-[7.8px] font-bold uppercase tracking-wide text-[#c2691f]">Fournisseur</p>
+              <p className="text-[7.8px] font-bold uppercase tracking-wide" style={{ color: accent }}>Fournisseur</p>
               <p className="font-semibold text-[#1a2330]">{cf.fournisseur.nom}</p>
               {cf.fournisseur.ice && <p className="text-[#56606c]">ICE {cf.fournisseur.ice}</p>}
               {cf.fournisseur.adresse && <p className="text-[#56606c]">{cf.fournisseur.adresse}</p>}
             </div>
             <div className="rounded-md bg-[#f5f6f8] p-2.5">
-              <p className="text-[7.8px] font-bold uppercase tracking-wide text-[#c2691f]">Chantier</p>
+              <p className="text-[7.8px] font-bold uppercase tracking-wide" style={{ color: accent }}>Chantier</p>
               <p className="font-semibold text-[#1a2330]">{cf.chantier?.nom ?? '—'}</p>
             </div>
           </div>
@@ -68,7 +68,7 @@ export default function CommandeFournisseurPrintPage() {
                 <span>TVA ({cf.tauxTva}%)</span>
                 <span>{formatMAD(cf.totaux.montantTVA)}</span>
               </div>
-              <div className="mt-1 flex justify-between border-t border-[#c7cdd6] pt-1 text-[11.5px] font-extrabold text-[#1b3a66]">
+              <div className="mt-1 flex justify-between border-t border-[#c7cdd6] pt-1 text-[11.5px] font-extrabold" style={{ color: primary }}>
                 <span>Total TTC</span>
                 <span>{formatMAD(cf.totaux.montantTTC)}</span>
               </div>
@@ -79,7 +79,7 @@ export default function CommandeFournisseurPrintPage() {
           </p>
 
           <div className="mt-auto pt-4">
-            <div className="rounded-t bg-[#1b3a66] px-2 py-1 text-[7.6px] uppercase tracking-wide text-white">Validation</div>
+            <div className="rounded-t px-2 py-1 text-[7.6px] uppercase tracking-wide text-white" style={{ backgroundColor: primary }}>Validation</div>
             <div className="grid grid-cols-2 border border-[#c7cdd6]">
               <div className="relative border-r border-[#c7cdd6] p-2 text-[8px] text-[#56606c]">
                 <b className="mb-0.5 block text-[8.6px] text-[#1a2330]">Émis par {societe.nom}</b>
