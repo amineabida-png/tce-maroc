@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { logAudit } from '../../lib/audit';
-import { createUtilisateurSchema, reinitialiserMotDePasseSchema, updateUtilisateurSchema } from './schema';
+import { createUtilisateurSchema, reinitialiserMotDePasseSchema, updateApparenceSchema, updateUtilisateurSchema } from './schema';
 import * as service from './service';
 
 export async function listUtilisateursHandler(req: Request, res: Response): Promise<void> {
@@ -27,6 +27,12 @@ export async function updateUtilisateurHandler(req: Request, res: Response): Pro
   const data = updateUtilisateurSchema.parse(req.body);
   const utilisateur = await service.updateUtilisateur(req.params.id as string, data);
   await logAudit({ utilisateurId: req.user?.id, action: 'UPDATE_UTILISATEUR', entite: 'Utilisateur', entiteId: utilisateur.id, metadonnees: data });
+  res.json(utilisateur);
+}
+
+export async function updateApparenceHandler(req: Request, res: Response): Promise<void> {
+  const data = updateApparenceSchema.parse(req.body);
+  const utilisateur = await service.updateApparence(req.user?.id as string, data);
   res.json(utilisateur);
 }
 

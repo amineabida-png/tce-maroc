@@ -6,6 +6,8 @@ export interface AuthUser {
   nom: string;
   prenom: string;
   role: string;
+  couleurPrimaire?: string | null;
+  couleurAccent?: string | null;
 }
 
 interface AuthState {
@@ -13,6 +15,7 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   setAuth: (tokens: { accessToken: string; refreshToken: string }, user?: AuthUser) => void;
+  updateUser: (partial: Partial<AuthUser>) => void;
   clear: () => void;
 }
 
@@ -43,6 +46,14 @@ export const useAuthStore = create<AuthState>((set) => ({
       refreshToken: tokens.refreshToken,
       user: user ?? state.user,
     }));
+  },
+  updateUser: (partial) => {
+    set((state) => {
+      if (!state.user) return state;
+      const user = { ...state.user, ...partial };
+      localStorage.setItem(USER_KEY, JSON.stringify(user));
+      return { user };
+    });
   },
   clear: () => {
     localStorage.removeItem(REFRESH_KEY);

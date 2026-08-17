@@ -38,6 +38,12 @@ model Utilisateur {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  // Charte de couleurs personnelle (hex #RRGGBB) — préférence d'affichage
+  // propre à ce compte, indépendante des autres utilisateurs. null = couleurs
+  // par défaut de l'application.
+  couleurPrimaire String?
+  couleurAccent   String?
+
   refreshTokens    RefreshToken[]
   journalEntries   JournalAudit[]
   chantiersDiriges Chantier[]

@@ -23,3 +23,17 @@ export const reinitialiserMotDePasseSchema = z.object({
   nouveauMotDePasse: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
 });
 export type ReinitialiserMotDePasseInput = z.infer<typeof reinitialiserMotDePasseSchema>;
+
+const couleurHex = z
+  .string()
+  .regex(/^#[0-9A-Fa-f]{6}$/, 'Couleur invalide (format #RRGGBB)')
+  .nullish()
+  .or(z.literal(''));
+
+// Préférence personnelle d'affichage — chaque utilisateur modifie la
+// sienne, aucun rapport avec les droits de gestion des comptes.
+export const updateApparenceSchema = z.object({
+  couleurPrimaire: couleurHex,
+  couleurAccent: couleurHex,
+});
+export type UpdateApparenceInput = z.infer<typeof updateApparenceSchema>;

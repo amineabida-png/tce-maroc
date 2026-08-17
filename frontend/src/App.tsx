@@ -1,4 +1,7 @@
+import { useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { applyUserTheme } from '@/lib/theme';
+import { useAuthStore } from '@/store/auth';
 import LoginPage from '@/features/auth/LoginPage';
 import DashboardPage from '@/features/dashboard/DashboardPage';
 import ClientsPage from '@/features/clients/ClientsPage';
@@ -32,6 +35,13 @@ import SocietePage from '@/features/societe/SocietePage';
 import ProtectedLayout from '@/layouts/ProtectedLayout';
 
 export default function App() {
+  const couleurPrimaire = useAuthStore((s) => s.user?.couleurPrimaire);
+  const couleurAccent = useAuthStore((s) => s.user?.couleurAccent);
+
+  useEffect(() => {
+    applyUserTheme(couleurPrimaire, couleurAccent);
+  }, [couleurPrimaire, couleurAccent]);
+
   return (
     <Routes>
       <Route path="/connexion" element={<LoginPage />} />

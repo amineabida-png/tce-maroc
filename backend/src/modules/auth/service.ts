@@ -13,11 +13,27 @@ import {
 interface AuthResult {
   accessToken: string;
   refreshToken: string;
-  user: { id: string; email: string; nom: string; prenom: string; role: string };
+  user: {
+    id: string;
+    email: string;
+    nom: string;
+    prenom: string;
+    role: string;
+    couleurPrimaire: string | null;
+    couleurAccent: string | null;
+  };
 }
 
-function toPublicUser(u: { id: string; email: string; nom: string; prenom: string; role: string }) {
-  return { id: u.id, email: u.email, nom: u.nom, prenom: u.prenom, role: u.role };
+function toPublicUser(u: {
+  id: string;
+  email: string;
+  nom: string;
+  prenom: string;
+  role: string;
+  couleurPrimaire: string | null;
+  couleurAccent: string | null;
+}) {
+  return { id: u.id, email: u.email, nom: u.nom, prenom: u.prenom, role: u.role, couleurPrimaire: u.couleurPrimaire, couleurAccent: u.couleurAccent };
 }
 
 async function issueTokens(userId: string, role: string): Promise<{ accessToken: string; refreshToken: string }> {

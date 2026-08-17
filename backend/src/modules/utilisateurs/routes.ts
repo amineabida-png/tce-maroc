@@ -7,6 +7,7 @@ import {
   listUtilisateursHandler,
   reactivateUtilisateurHandler,
   reinitialiserMotDePasseHandler,
+  updateApparenceHandler,
   updateUtilisateurHandler,
 } from './controller';
 
@@ -18,6 +19,9 @@ const router = Router();
 const CAN_MANAGE = ['ADMIN', 'DIRECTEUR'];
 
 router.get('/', requireAuth, asyncHandler(listUtilisateursHandler));
+// Préférence personnelle (couleurs) : n'importe quel compte connecté
+// modifie la sienne, aucun rapport avec CAN_MANAGE.
+router.put('/moi/apparence', requireAuth, asyncHandler(updateApparenceHandler));
 router.post('/', requireAuth, requireRole(...CAN_MANAGE), asyncHandler(createUtilisateurHandler));
 router.put('/:id', requireAuth, requireRole(...CAN_MANAGE), asyncHandler(updateUtilisateurHandler));
 router.post('/:id/desactiver', requireAuth, requireRole(...CAN_MANAGE), asyncHandler(deactivateUtilisateurHandler));

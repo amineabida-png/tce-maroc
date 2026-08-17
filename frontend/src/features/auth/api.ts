@@ -1,4 +1,4 @@
-import { ApiError } from '@/lib/api';
+import { ApiError, apiFetch } from '@/lib/api';
 import type { AuthUser } from '@/store/auth';
 
 interface LoginResponse {
@@ -28,4 +28,17 @@ export async function logoutRequest(refreshToken: string): Promise<void> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refreshToken }),
   }).catch(() => {});
+}
+
+export interface Apparence {
+  id: string;
+  couleurPrimaire: string | null;
+  couleurAccent: string | null;
+}
+
+export function updateApparence(couleurPrimaire: string | null, couleurAccent: string | null) {
+  return apiFetch<Apparence>('/api/utilisateurs/moi/apparence', {
+    method: 'PUT',
+    body: JSON.stringify({ couleurPrimaire: couleurPrimaire ?? '', couleurAccent: couleurAccent ?? '' }),
+  });
 }

@@ -15,13 +15,6 @@ interface NumerotationsSectionProps {
 
 const CURRENT_YEAR = new Date().getFullYear();
 
-// Erreur de saisie fréquente : taper l'année dans le préfixe en pensant
-// configurer la numérotation par-là. Un vrai préfixe contient toujours au
-// moins une lettre (DEV, BC, FACT...).
-function prefixeValide(v: string | undefined): boolean {
-  return Boolean(v && /[A-Za-zÀ-ÿ]/.test(v));
-}
-
 export function NumerotationsSection({ numerotations, editable }: NumerotationsSectionProps) {
   const queryClient = useQueryClient();
   const [prefixes, setPrefixes] = useState<Record<string, string>>({});
@@ -60,9 +53,9 @@ export function NumerotationsSection({ numerotations, editable }: NumerotationsS
       <CardHeader>
         <CardTitle className="text-base">Numérotation des documents</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Le <b>préfixe</b> est la partie en lettres (DEV, BC, FACT…) — l'année s'ajoute automatiquement, inutile de
-          la saisir. Pour reprendre une numérotation existante (ex. après une migration), changez plutôt le{' '}
-          <b>prochain numéro</b>. Exemple final : <span className="font-mono">DEV-2026-0001</span>.
+          Préfixe libre (lettres, chiffres, ou les deux) — l'année s'ajoute automatiquement après. Pour reprendre une
+          numérotation existante (ex. après une migration), changez le <b>prochain numéro</b>. Exemple :{' '}
+          <span className="font-mono">DEV-2026-0001</span>.
         </p>
       </CardHeader>
       <CardContent>
@@ -77,7 +70,6 @@ export function NumerotationsSection({ numerotations, editable }: NumerotationsS
           </TableHeader>
           <TableBody>
             {TYPES_DOCUMENT_NUMEROTES.map((type) => {
-              const prefixeInvalide = editable && prefixes[type] !== undefined && !prefixeValide(prefixes[type]);
               return (
                 <TableRow key={type}>
                   <TableCell className="font-medium">{TYPE_DOCUMENT_LABELS[type]}</TableCell>
@@ -92,9 +84,6 @@ export function NumerotationsSection({ numerotations, editable }: NumerotationsS
                         setSavedTypes((prev) => ({ ...prev, [type]: false }));
                       }}
                     />
-                    {prefixeInvalide && (
-                      <p className="mt-1 text-xs text-destructive">Doit contenir au moins une lettre — pas juste l'année.</p>
-                    )}
                   </TableCell>
                   <TableCell>
                     <Input
@@ -118,12 +107,7 @@ export function NumerotationsSection({ numerotations, editable }: NumerotationsS
                         <button
                           type="button"
                           className="rounded-md border px-2.5 py-1 text-xs font-medium hover:bg-accent disabled:opacity-50"
-                          disabled={
-                            saveMutation.isPending ||
-                            !prefixeValide(prefixes[type]) ||
-                            !numeros[type] ||
-                            Number(numeros[type]) < 1
-                          }
+                          disabled={saveMutation.isPending || !prefixes[type] || !numeros[type] || Number(numeros[type]) < 1}
                           onClick={() => saveMutation.mutate(type)}
                         >
                           Enregistrer

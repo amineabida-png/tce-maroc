@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ApiError } from '@/lib/api';
 import { useAuthStore } from '@/store/auth';
 import * as api from './api';
+import { ApparenceSection } from './ApparenceSection';
 import { LogoField } from './LogoField';
 import { NumerotationsSection } from './NumerotationsSection';
 import type { Societe } from './types';
@@ -100,6 +101,8 @@ export default function SocietePage() {
             : 'Lecture seule — la modification est réservée à l’encadrement (Admin, Directeur).'}
         </p>
       </div>
+
+      <ApparenceSection />
 
       <form
         className="space-y-6"

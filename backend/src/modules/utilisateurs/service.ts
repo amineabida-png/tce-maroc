@@ -1,7 +1,7 @@
 import { prisma } from '../../db/client';
 import { AppError } from '../../middleware/errorHandler';
 import { hashPassword } from '../../lib/password';
-import type { CreateUtilisateurInput, UpdateUtilisateurInput } from './schema';
+import type { CreateUtilisateurInput, UpdateApparenceInput, UpdateUtilisateurInput } from './schema';
 
 const SELECT_PUBLIC = { id: true, nom: true, prenom: true, role: true, email: true, actif: true, createdAt: true } as const;
 
@@ -66,6 +66,20 @@ export async function deactivateUtilisateur(id: string, demandeurId: string) {
 export async function reactivateUtilisateur(id: string) {
   await fetchUtilisateurOrThrow(id);
   return prisma.utilisateur.update({ where: { id }, data: { actif: true }, select: SELECT_PUBLIC });
+}
+
+// Chaque utilisateur ne modifie que sa propre apparence (id = compte
+// authentifié, jamais un id passé en paramètre d'URL) — aucune restriction
+// de rôle nécessaire au-delà d'être connecté.
+export async function updateApparence(id: string, data: UpdateApparenceInput) {
+  return prisma.utilisateur.update({
+    where: { id },
+    data: {
+      couleurPrimaire: data.couleurPrimaire === '' ? null : data.couleurPrimaire,
+      couleurAccent: data.couleurAccent === '' ? null : data.couleurAccent,
+    },
+    select: { id: true, couleurPrimaire: true, couleurAccent: true },
+  });
 }
 
 export async function reinitialiserMotDePasse(id: string, nouveauMotDePasse: string) {
