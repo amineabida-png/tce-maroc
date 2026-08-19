@@ -18,8 +18,8 @@ import { useAuthStore } from '@/store/auth';
 import * as situationsApi from '@/features/situations/api';
 import { STATUT_SITUATION_LABELS, STATUT_SITUATION_VARIANT } from '@/features/situations/types';
 import * as api from './api';
-import type { CommandeContent, LigneContent } from './api';
-import { STATUT_COMMANDE_LABELS, STATUT_COMMANDE_VARIANT, STATUTS_MODIFIABLES, type StatutCommande } from './types';
+import type { ContratSousTraitantContent, LigneContent } from './api';
+import { STATUT_CST_LABELS, STATUT_CST_VARIANT, STATUTS_MODIFIABLES, type StatutContratSousTraitant } from './types';
 
 interface Option {
   id: string;
@@ -27,78 +27,81 @@ interface Option {
 }
 
 const EMPTY_LIGNE: LigneContent = { designation: '', unite: '', quantite: '1', prixUnitaire: '0' };
-const EMPTY_CONTENT: CommandeContent = { clientId: '', chantierId: '', tauxTva: '20', lignes: [] };
+const EMPTY_CONTENT: ContratSousTraitantContent = { sousTraitantId: '', chantierId: '', tauxTva: '20', lignes: [] };
 
-export default function CommandeDetailPage() {
+export default function ContratSousTraitantDetailPage() {
   const { id } = useParams<{ id: string }>();
   const isNew = id === 'nouveau';
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const role = useAuthStore((s) => s.user?.role);
+  const manager = isRoleManager(role);
 
-  const [content, setContent] = useState<CommandeContent>(EMPTY_CONTENT);
+  const [content, setContent] = useState<ContratSousTraitantContent>(EMPTY_CONTENT);
   const [error, setError] = useState<string | null>(null);
 
-  const { data: commande, isLoading } = useQuery({
-    queryKey: ['commande', id],
-    queryFn: () => api.fetchCommande(id as string),
+  const { data: contrat, isLoading } = useQuery({
+    queryKey: ['contrat-sous-traitance', id],
+    queryFn: () => api.fetchOne(id as string),
     enabled: !isNew && Boolean(id),
   });
 
   useEffect(() => {
-    if (commande) {
+    if (contrat) {
       setContent({
-        clientId: commande.client.id,
-        chantierId: commande.chantier?.id ?? '',
-        tauxTva: commande.tauxTva,
-        lignes: commande.lignes.map((l) => ({ designation: l.designation, unite: l.unite, quantite: l.quantite, prixUnitaire: l.prixUnitaire })),
+        sousTraitantId: contrat.sousTraitant.id,
+        chantierId: contrat.chantier?.id ?? '',
+        tauxTva: contrat.tauxTva,
+        lignes: contrat.lignes.map((l) => ({ designation: l.designation, unite: l.unite, quantite: l.quantite, prixUnitaire: l.prixUnitaire })),
       });
     }
-  }, [commande]);
+  }, [contrat]);
 
-  const { data: clients } = useQuery({ queryKey: ['clients-options'], queryFn: () => apiFetch<{ items: Option[] }>('/api/clients?pageSize=100') });
+  const { data: sousTraitants } = useQuery({
+    queryKey: ['sous-traitants-options'],
+    queryFn: () => apiFetch<{ items: Option[] }>('/api/sous-traitants?pageSize=100'),
+  });
   const { data: chantiers } = useQuery({
     queryKey: ['chantiers-options'],
     queryFn: () => apiFetch<{ items: Option[] }>('/api/chantiers?pageSize=100'),
   });
   const { data: situations } = useQuery({
-    queryKey: ['situations-list', 'commande', id],
-    queryFn: () => situationsApi.fetchList({ commandeId: id as string, page: 1 }),
+    queryKey: ['situations-list', 'contrat', id],
+    queryFn: () => situationsApi.fetchList({ contratSousTraitantId: id as string, page: 1 }),
     enabled: !isNew && Boolean(id),
   });
 
-  const role = useAuthStore((s) => s.user?.role);
-  const manager = isRoleManager(role);
-  const modifiable = isNew || (commande ? STATUTS_MODIFIABLES.includes(commande.statut) || manager : false);
+  const manageable = isNew || (contrat ? STATUTS_MODIFIABLES.includes(contrat.statut) || manager : false);
+
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ['contrats-sous-traitance-list'] });
+    queryClient.invalidateQueries({ queryKey: ['contrats-sous-traitance-resume'] });
+  };
 
   const saveMutation = useMutation({
-    mutationFn: () => (isNew ? api.createCommande(content) : api.updateCommande(id as string, content)),
+    mutationFn: () => (isNew ? api.create(content) : api.update(id as string, content)),
     onSuccess: (saved) => {
-      queryClient.invalidateQueries({ queryKey: ['commandes-list'] });
-      if (isNew) navigate(`/commandes/${saved.id}`, { replace: true });
-      else queryClient.invalidateQueries({ queryKey: ['commande', id] });
+      invalidate();
+      if (isNew) navigate(`/contrats-sous-traitance/${saved.id}`, { replace: true });
+      else queryClient.invalidateQueries({ queryKey: ['contrat-sous-traitance', id] });
       setError(null);
     },
     onError: (err) => setError(err instanceof ApiError ? err.message : 'Erreur inattendue.'),
   });
-
   const statutMutation = useMutation({
-    mutationFn: (statut: StatutCommande) => api.changeStatutCommande(id as string, statut),
+    mutationFn: (statut: StatutContratSousTraitant) => api.changeStatut(id as string, statut),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['commande', id] });
-      queryClient.invalidateQueries({ queryKey: ['commandes-list'] });
+      invalidate();
+      queryClient.invalidateQueries({ queryKey: ['contrat-sous-traitance', id] });
     },
     onError: (err) => setError(err instanceof ApiError ? err.message : 'Erreur inattendue.'),
   });
-
-  const convertMutation = useMutation({
-    mutationFn: () => api.convertirEnFacture(id as string),
-    onSuccess: (facture) => navigate(`/factures/${facture.id}`),
-    onError: (err) => setError(err instanceof ApiError ? err.message : 'Erreur inattendue.'),
-  });
-
   const deleteMutation = useMutation({
-    mutationFn: () => api.deleteCommande(id as string),
-    onSuccess: () => navigate('/commandes'),
+    mutationFn: () => api.remove(id as string),
+    onSuccess: () => {
+      invalidate();
+      navigate('/contrats-sous-traitance');
+    },
     onError: (err) => setError(err instanceof ApiError ? err.message : 'Erreur inattendue.'),
   });
 
@@ -118,43 +121,42 @@ export default function CommandeDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Link to="/commandes" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
-        ← Retour aux commandes
+      <Link to="/contrats-sous-traitance" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
+        ← Retour aux contrats de sous-traitance
       </Link>
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-semibold">{isNew ? 'Nouveau bon de commande' : commande?.numero}</h1>
-          {commande && <Badge variant={STATUT_COMMANDE_VARIANT[commande.statut]}>{STATUT_COMMANDE_LABELS[commande.statut]}</Badge>}
-          {commande?.devis && <span className="text-sm text-muted-foreground">(depuis devis {commande.devis.numero})</span>}
+          <h1 className="text-2xl font-semibold">{isNew ? 'Nouveau contrat de sous-traitance' : contrat?.numero}</h1>
+          {contrat && <Badge variant={STATUT_CST_VARIANT[contrat.statut]}>{STATUT_CST_LABELS[contrat.statut]}</Badge>}
         </div>
-        {commande && (
+        {contrat && (
           <div className="flex flex-wrap gap-2">
-            <Link to={`/commandes/${commande.id}/imprimer`} className={buttonVariants({ variant: 'outline', className: 'gap-2' })}>
+            <Link to={`/contrats-sous-traitance/${contrat.id}/imprimer`} className={buttonVariants({ variant: 'outline', className: 'gap-2' })}>
               <Printer className="h-4 w-4" />
               Imprimer
             </Link>
-            {commande.statut === 'BROUILLON' && (
-              <Button variant="outline" onClick={() => statutMutation.mutate('CONFIRMEE')}>
+            {contrat.statut === 'BROUILLON' && (
+              <Button variant="outline" onClick={() => statutMutation.mutate('CONFIRME')}>
                 Confirmer
               </Button>
             )}
-            {commande.statut === 'CONFIRMEE' && (
+            {contrat.statut === 'CONFIRME' && (
               <>
-                <Button onClick={() => convertMutation.mutate()} disabled={convertMutation.isPending}>
-                  Convertir en facture
+                <Button variant="outline" onClick={() => statutMutation.mutate('TERMINE')}>
+                  Marquer terminé
                 </Button>
-                <Button variant="ghost" className="text-destructive" onClick={() => statutMutation.mutate('ANNULEE')}>
+                <Button variant="ghost" className="text-destructive" onClick={() => statutMutation.mutate('ANNULE')}>
                   Annuler
                 </Button>
               </>
             )}
-            {(commande.statut === 'BROUILLON' || manager) && (
+            {(contrat.statut === 'BROUILLON' || manager) && (
               <Button
                 variant="ghost"
                 className="gap-2 text-destructive hover:text-destructive"
                 onClick={() => {
-                  if (confirm('Supprimer cette commande ?')) deleteMutation.mutate();
+                  if (confirm('Supprimer ce contrat de sous-traitance ?')) deleteMutation.mutate();
                 }}
               >
                 <Trash2 className="h-4 w-4" />
@@ -168,19 +170,27 @@ export default function CommandeDetailPage() {
       <Card>
         <CardContent className="grid grid-cols-2 gap-4 pt-6">
           <div className="space-y-1.5">
-            <Label>Client *</Label>
-            <SelectNative disabled={!modifiable} value={content.clientId} onChange={(e) => setContent((c) => ({ ...c, clientId: e.target.value }))}>
+            <Label>Sous-traitant *</Label>
+            <SelectNative
+              disabled={!manageable}
+              value={content.sousTraitantId}
+              onChange={(e) => setContent((c) => ({ ...c, sousTraitantId: e.target.value }))}
+            >
               <option value="">— Choisir —</option>
-              {clients?.items.map((cl) => (
-                <option key={cl.id} value={cl.id}>
-                  {cl.nom}
+              {sousTraitants?.items.map((st) => (
+                <option key={st.id} value={st.id}>
+                  {st.nom}
                 </option>
               ))}
             </SelectNative>
           </div>
           <div className="space-y-1.5">
             <Label>Chantier</Label>
-            <SelectNative disabled={!modifiable} value={content.chantierId} onChange={(e) => setContent((c) => ({ ...c, chantierId: e.target.value }))}>
+            <SelectNative
+              disabled={!manageable}
+              value={content.chantierId}
+              onChange={(e) => setContent((c) => ({ ...c, chantierId: e.target.value }))}
+            >
               <option value="">— Aucun —</option>
               {chantiers?.items.map((ch) => (
                 <option key={ch.id} value={ch.id}>
@@ -195,7 +205,7 @@ export default function CommandeDetailPage() {
               type="number"
               min="0"
               max="100"
-              disabled={!modifiable}
+              disabled={!manageable}
               value={content.tauxTva}
               onChange={(e) => setContent((c) => ({ ...c, tauxTva: e.target.value }))}
             />
@@ -205,7 +215,7 @@ export default function CommandeDetailPage() {
 
       <Card>
         <CardContent className="space-y-3 pt-6">
-          <h3 className="font-medium">Lignes</h3>
+          <h3 className="font-medium">Lignes du marché</h3>
           {content.lignes.length > 0 && (
             <div className="grid grid-cols-[1fr_80px_90px_110px_90px_28px] gap-2 text-xs font-medium text-muted-foreground">
               <span>Désignation</span>
@@ -220,19 +230,19 @@ export default function CommandeDetailPage() {
             const total = (Number(l.quantite) || 0) * (Number(l.prixUnitaire) || 0);
             return (
               <div key={i} className="grid grid-cols-[1fr_80px_90px_110px_90px_28px] items-center gap-2">
-                <Input disabled={!modifiable} value={l.designation} onChange={(e) => updateLigne(i, 'designation', e.target.value)} />
-                <Input disabled={!modifiable} value={l.unite} onChange={(e) => updateLigne(i, 'unite', e.target.value)} />
-                <Input type="number" min="0" step="0.01" disabled={!modifiable} value={l.quantite} onChange={(e) => updateLigne(i, 'quantite', e.target.value)} />
+                <Input disabled={!manageable} value={l.designation} onChange={(e) => updateLigne(i, 'designation', e.target.value)} />
+                <Input disabled={!manageable} value={l.unite} onChange={(e) => updateLigne(i, 'unite', e.target.value)} />
+                <Input type="number" min="0" step="0.01" disabled={!manageable} value={l.quantite} onChange={(e) => updateLigne(i, 'quantite', e.target.value)} />
                 <Input
                   type="number"
                   min="0"
                   step="0.01"
-                  disabled={!modifiable}
+                  disabled={!manageable}
                   value={l.prixUnitaire}
                   onChange={(e) => updateLigne(i, 'prixUnitaire', e.target.value)}
                 />
                 <span className="text-right text-sm">{formatMAD(total)}</span>
-                {modifiable ? (
+                {manageable ? (
                   <button className="text-muted-foreground hover:text-destructive" onClick={() => removeLigne(i)}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -242,7 +252,7 @@ export default function CommandeDetailPage() {
               </div>
             );
           })}
-          {modifiable && (
+          {manageable && (
             <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground" onClick={addLigne}>
               <Plus className="h-3.5 w-3.5" />
               Ajouter une ligne
@@ -270,17 +280,20 @@ export default function CommandeDetailPage() {
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
-      {modifiable && (
-        <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || !content.clientId}>
-          {saveMutation.isPending ? 'Enregistrement…' : 'Enregistrer la commande'}
+      {manageable && (
+        <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || !content.sousTraitantId}>
+          {saveMutation.isPending ? 'Enregistrement…' : 'Enregistrer le contrat'}
         </Button>
       )}
 
-      {commande && (
+      {contrat && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-medium">Situations d'avancement</h3>
-            <Link to={`/situations/nouveau?commandeId=${commande.id}`} className={buttonVariants({ size: 'sm', className: 'gap-2' })}>
+            <Link
+              to={`/situations/nouveau?contratSousTraitantId=${contrat.id}`}
+              className={buttonVariants({ size: 'sm', className: 'gap-2' })}
+            >
               <FileBarChart className="h-4 w-4" />
               Nouvelle situation
             </Link>

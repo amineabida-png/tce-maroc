@@ -26,6 +26,12 @@ import ArticlesPage from '@/features/articles/ArticlesPage';
 import CommandesFournisseurPage from '@/features/commandes-fournisseur/CommandesFournisseurPage';
 import CommandeFournisseurDetailPage from '@/features/commandes-fournisseur/CommandeFournisseurDetailPage';
 import CommandeFournisseurPrintPage from '@/features/commandes-fournisseur/CommandeFournisseurPrintPage';
+import SituationsPage from '@/features/situations/SituationsPage';
+import SituationDetailPage from '@/features/situations/SituationDetailPage';
+import SituationPrintPage from '@/features/situations/SituationPrintPage';
+import ContratsSousTraitancePage from '@/features/contrats-sous-traitance/ContratsSousTraitancePage';
+import ContratSousTraitantDetailPage from '@/features/contrats-sous-traitance/ContratSousTraitantDetailPage';
+import ContratSousTraitantPrintPage from '@/features/contrats-sous-traitance/ContratSousTraitantPrintPage';
 import StockPage from '@/features/stock/StockPage';
 import RHPage from '@/features/rh/RHPage';
 import FinancesPage from '@/features/finances/FinancesPage';
@@ -69,6 +75,12 @@ export default function App() {
         <Route path="/commandes-fournisseur" element={<CommandesFournisseurPage />} />
         <Route path="/commandes-fournisseur/:id" element={<CommandeFournisseurDetailPage />} />
         <Route path="/commandes-fournisseur/:id/imprimer" element={<CommandeFournisseurPrintPage />} />
+        <Route path="/situations" element={<SituationsPage />} />
+        <Route path="/situations/:id" element={<SituationDetailPage />} />
+        <Route path="/situations/:id/imprimer" element={<SituationPrintPage />} />
+        <Route path="/contrats-sous-traitance" element={<ContratsSousTraitancePage />} />
+        <Route path="/contrats-sous-traitance/:id" element={<ContratSousTraitantDetailPage />} />
+        <Route path="/contrats-sous-traitance/:id/imprimer" element={<ContratSousTraitantPrintPage />} />
         <Route path="/stock" element={<StockPage />} />
         <Route path="/rh" element={<RHPage />} />
         <Route path="/finances" element={<FinancesPage />} />

@@ -206,8 +206,9 @@ model SousTraitant {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  depenses             DepenseChantier[]
-  mouvementsTresorerie MouvementTresorerie[]
+  depenses              DepenseChantier[]
+  mouvementsTresorerie  MouvementTresorerie[]
+  contratsSousTraitance ContratSousTraitant[]
 
   @@index([nom])
   @@schema("tce_maroc")
@@ -248,16 +249,18 @@ model Chantier {
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
 
-  taches               TacheChantier[]
-  depenses             DepenseChantier[]
-  devis                Devis[]
-  commandes            Commande[]
-  factures             Facture[]
-  commandesFournisseur CommandeFournisseur[]
-  bonsLivraison        BonLivraison[]
-  mouvementsStock      MouvementStock[]
-  pointages            Pointage[]
-  mouvementsTresorerie MouvementTresorerie[]
+  taches                TacheChantier[]
+  depenses              DepenseChantier[]
+  devis                 Devis[]
+  commandes             Commande[]
+  factures              Facture[]
+  commandesFournisseur  CommandeFournisseur[]
+  bonsLivraison         BonLivraison[]
+  situations            Situation[]
+  contratsSousTraitance ContratSousTraitant[]
+  mouvementsStock       MouvementStock[]
+  pointages             Pointage[]
+  mouvementsTresorerie  MouvementTresorerie[]
 
   @@index([nom])
   @@index([statut])
@@ -449,6 +452,7 @@ model Commande {
   lignes        LigneCommande[]
   factures      Facture[]
   bonsLivraison BonLivraison[]
+  situations    Situation[]
 
   @@index([clientId])
   @@schema("tce_maroc")
@@ -893,7 +897,117 @@ enum TypeEntiteDocument {
   FACTURE
   COMMANDE_FOURNISSEUR
   BON_LIVRAISON
+  SITUATION
+  CONTRAT_SOUS_TRAITANCE
 
+  @@schema("tce_maroc")
+}
+
+// ===== SOUS-TRAITANCE =====
+
+enum StatutContratSousTraitant {
+  BROUILLON
+  CONFIRME
+  TERMINE
+  ANNULE
+
+  @@schema("tce_maroc")
+}
+
+// Marché confié à un sous-traitant (lots/lignes, prix), pendant du Bon de
+// commande côté client. Sert de base aux Situations sous-traitant (avancement
+// cumulé facturé au fil du chantier).
+model ContratSousTraitant {
+  id             String                    @id @default(uuid())
+  numero         String                    @unique
+  sousTraitantId String
+  sousTraitant   SousTraitant              @relation(fields: [sousTraitantId], references: [id])
+  chantierId     String?
+  chantier       Chantier?                 @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+  date           DateTime                  @default(now())
+  statut         StatutContratSousTraitant @default(BROUILLON)
+  tauxTva        Decimal                   @default(20) @db.Decimal(5, 2)
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  lignes     LigneContratSousTraitant[]
+  situations Situation[]
+
+  @@index([sousTraitantId])
+  @@schema("tce_maroc")
+}
+
+model LigneContratSousTraitant {
+  id                    String              @id @default(uuid())
+  contratSousTraitantId String
+  contratSousTraitant   ContratSousTraitant @relation(fields: [contratSousTraitantId], references: [id], onDelete: Cascade)
+  designation           String
+  unite                 String
+  quantite              Decimal             @db.Decimal(12, 3)
+  prixUnitaire          Decimal             @db.Decimal(12, 2)
+  ordre                 Int                 @default(0)
+
+  @@index([contratSousTraitantId])
+  @@schema("tce_maroc")
+}
+
+// ===== SITUATIONS DE TRAVAUX =====
+
+enum StatutSituation {
+  BROUILLON
+  ENVOYEE
+  PAYEE
+  ANNULEE
+
+  @@schema("tce_maroc")
+}
+
+// Décompte d'avancement périodique (mensuel en général) : pour chaque ligne
+// du marché, le % cumulé réalisé à date détermine le montant dû à ce stade ;
+// le montant de LA situation = montant cumulé - montant déjà facturé sur les
+// situations précédentes du même marché. Rattachée à une Commande (marché
+// client) OU un ContratSousTraitant (marché sous-traitant), jamais les deux —
+// vérifié en service, pas en contrainte SQL (Prisma ne modélise pas XOR).
+// Les lignes sont une photo figée (désignation/prix/quantité du marché au
+// moment de la situation) plutôt qu'une FK vers la ligne du marché, pour ne
+// pas dépendre de lignes qui peuvent être remplacées si le marché est modifié.
+model Situation {
+  id                    String               @id @default(uuid())
+  numero                String               @unique
+  numeroSituation       Int // 1, 2, 3... séquentiel pour CE marché
+  commandeId            String?
+  commande              Commande?            @relation(fields: [commandeId], references: [id], onDelete: SetNull)
+  contratSousTraitantId String?
+  contratSousTraitant   ContratSousTraitant? @relation(fields: [contratSousTraitantId], references: [id], onDelete: SetNull)
+  chantierId            String?
+  chantier              Chantier?            @relation(fields: [chantierId], references: [id], onDelete: SetNull)
+  date                  DateTime             @default(now())
+  statut                StatutSituation      @default(BROUILLON)
+  tauxTva               Decimal              @default(20) @db.Decimal(5, 2)
+  tauxRetenueGarantie   Decimal              @default(0) @db.Decimal(5, 2)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  lignes LigneSituation[]
+
+  @@index([commandeId])
+  @@index([contratSousTraitantId])
+  @@schema("tce_maroc")
+}
+
+model LigneSituation {
+  id                          String    @id @default(uuid())
+  situationId                 String
+  situation                   Situation @relation(fields: [situationId], references: [id], onDelete: Cascade)
+  designation                 String
+  unite                       String
+  quantiteMarche              Decimal   @db.Decimal(12, 3)
+  prixUnitaire                Decimal   @db.Decimal(12, 2)
+  avancementPrecedentPourcent Decimal   @default(0) @db.Decimal(5, 2)
+  avancementCumulePourcent    Decimal   @db.Decimal(5, 2)
+  ordre                       Int       @default(0)
+
+  @@index([situationId])
   @@schema("tce_maroc")
 }
 
